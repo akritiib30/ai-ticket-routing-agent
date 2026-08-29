@@ -40,7 +40,7 @@ ATTACHMENTS_DIR = os.path.join(os.path.dirname(__file__), "attachments")
 # ============================================================
 
 st.set_page_config(
-    page_title="AI Ticket Intelligence",
+    page_title="Resolve IQ",
     page_icon="🤖",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -369,8 +369,73 @@ if "page" not in st.session_state:
     st.session_state.page = "🎫 Submit Ticket"
 if "username" not in st.session_state:
     st.session_state.username = ""
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "user_id" not in st.session_state:
+    st.session_state.user_id = ""
+if "user_org" not in st.session_state:
+    st.session_state.user_org = ""
 
 os.makedirs(ATTACHMENTS_DIR, exist_ok=True)
+
+
+# ============================================================
+# LOGIN PAGE
+# ============================================================
+
+def page_login():
+    st.markdown(
+        """
+        <div style="text-align:center; margin-top: 8vh;">
+            <div style="font-size:3rem; font-weight:900; font-family:'Space Grotesk', sans-serif;
+                        background: linear-gradient(90deg, var(--cyan), var(--magenta), var(--gold));
+                        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                        letter-spacing: -1px;">
+                🧠 Resolve IQ
+            </div>
+            <div style="color:var(--muted); font-size:1.05rem; margin-top:6px;">
+                AI-Powered Intelligent Ticket Routing &amp; Resolution Agent
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    _, mid, _ = st.columns([1, 1.3, 1])
+    with mid:
+        st.markdown('<div class="glow-card" style="margin-top: 2rem;">', unsafe_allow_html=True)
+        st.markdown("### 👋 Sign in to continue")
+
+        name = st.text_input("Your name", placeholder="e.g. Priya Sharma")
+        user_id = st.text_input("Employee / Student ID", placeholder="e.g. EMP1042")
+        org = st.text_input("Organization name", placeholder="e.g. Acme Corp")
+
+        if st.button("🚀 Enter Dashboard", use_container_width=True):
+            if name.strip():
+                st.session_state.logged_in = True
+                st.session_state.username = name.strip()
+                st.session_state.user_id = user_id.strip()
+                st.session_state.user_org = org.strip()
+                st.rerun()
+            else:
+                st.warning("Please enter your name at least.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown(
+        """
+        <div style="position: fixed; bottom: 14px; right: 22px; color: var(--muted);
+                    font-size: 0.85rem; font-weight: 600;">
+            Made by Akriti Biswas and Siddhi Kale
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+if not st.session_state.logged_in:
+    page_login()
+    st.stop()
+
 
 
 @st.cache_resource
@@ -386,12 +451,17 @@ pipeline = get_pipeline()
 # ============================================================
 
 with st.sidebar:
-    st.markdown("## 🤖 Ticket Intelligence")
+    st.markdown("## 🧠 Resolve IQ")
     st.caption("AI-powered routing, RAG resolution & remediation")
 
-    st.session_state.username = st.text_input(
-        "👤 Your name", value=st.session_state.username, placeholder="e.g. Priya"
+    st.markdown(
+        f"👤 **{st.session_state.username}**"
+        + (f"  \nID: {st.session_state.user_id}" if st.session_state.user_id else "")
+        + (f"  \n🏢 {st.session_state.user_org}" if st.session_state.user_org else "")
     )
+    if st.button("🔓 Log out", use_container_width=True):
+        st.session_state.logged_in = False
+        st.rerun()
 
     st.markdown("---")
 
@@ -466,7 +536,7 @@ def build_general_query_result(raw_text: str, user: str = None) -> PipelineResul
 # ============================================================
 
 def page_submit():
-    st.markdown("# AI Ticket Intelligence")
+    st.markdown("# Resolve IQ")
     st.caption("Classification • RAG Retrieval • Confidence • Remediation • Escalation")
 
     st.markdown("### 🔄 Submit a new ticket")
@@ -649,7 +719,7 @@ def rows_to_pdf_bytes(rows) -> bytes:
     pdf = FPDF(orientation="L", unit="mm", format="A4")
     pdf.add_page()
     pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 10, "AI Ticket Intelligence - Ticket Report")
+    pdf.cell(0, 10, "Resolve IQ - Ticket Report")
     pdf.ln(10)
     pdf.set_font("Helvetica", "", 8)
     pdf.cell(0, 6, f"Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}  |  {len(rows)} ticket(s)")
@@ -886,13 +956,13 @@ st.markdown(
     """
 <div class="footer">
     <div style="font-size:1.05rem; font-weight:800; color:var(--text);">
-        AI-Powered Intelligent Ticket Routing &amp; Resolution Agent
+        Resolve IQ — AI-Powered Intelligent Ticket Routing &amp; Resolution Agent
     </div>
     <div style="margin-top:8px;">
         Classification • RAG • Resolution • Remediation • Escalation
     </div>
     <div style="margin-top:12px;">
-        Built as an intelligent support-agent workflow.
+        Made by Aakriti Biswas and Siddhi Kale
     </div>
 </div>
 """,
