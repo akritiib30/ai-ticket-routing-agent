@@ -403,7 +403,6 @@ def page_login():
 
     _, mid, _ = st.columns([1, 1.3, 1])
     with mid:
-        st.markdown('<div class="glow-card" style="margin-top: 2rem;">', unsafe_allow_html=True)
         st.markdown("### 👋 Sign in to continue")
 
         name = st.text_input("Your name", placeholder="e.g. Priya Sharma")
@@ -419,7 +418,6 @@ def page_login():
                 st.rerun()
             else:
                 st.warning("Please enter your name at least.")
-        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown(
         """
@@ -435,7 +433,6 @@ def page_login():
 if not st.session_state.logged_in:
     page_login()
     st.stop()
-
 
 
 @st.cache_resource
@@ -962,7 +959,7 @@ st.markdown(
         Classification • RAG • Resolution • Remediation • Escalation
     </div>
     <div style="margin-top:12px;">
-        Made by Aakriti Biswas and Siddhi Kale
+        Made by Akriti Biswas and Siddhi Kale
     </div>
 </div>
 """,
