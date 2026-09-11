@@ -1,18 +1,30 @@
 """
-Safe automated remediation actions.
+Resolve IQ - Safe Automated Remediation
 
-The system attempts simple, low-risk fixes for common IT issues.
-High-risk actions such as password changes, account changes,
-database modifications, or security actions are not performed automatically.
+Provides low-risk diagnostics and corrective actions for supported
+IT categories.
+
+Safety rules:
+- Passwords are never changed automatically.
+- Accounts are never modified automatically.
+- Permissions are never changed automatically.
+- Security settings are never modified automatically.
+- Database data/schema is never modified automatically.
+- Files are never deleted automatically.
+- Diagnostic success is not reported as a successful fix.
 """
 
-import subprocess
 import platform
 import shutil
+import subprocess
 
+
+# ============================================================
+# COMMAND EXECUTION
+# ============================================================
 
 def run_command(command, timeout=15):
-    """Run a system command safely and return the result."""
+    """Run a system command safely and return its result."""
 
     try:
         result = subprocess.run(
@@ -28,16 +40,20 @@ def run_command(command, timeout=15):
             "error": result.stderr.strip(),
         }
 
-    except Exception as e:
+    except Exception as exc:
         return {
             "success": False,
             "output": "",
-            "error": str(e),
+            "error": str(exc),
         }
 
 
+# ============================================================
+# NETWORK DIAGNOSTIC
+# ============================================================
+
 def test_internet():
-    """Test whether the machine can reach the internet."""
+    """Check whether the current machine can reach the internet."""
 
     system = platform.system()
 
@@ -49,71 +65,112 @@ def test_internet():
     return run_command(command, timeout=10)
 
 
+# ============================================================
+# MAIN REMEDIATION FUNCTION
+# ============================================================
+
 def diagnose_and_fix(category: str, text: str):
     """
-    Diagnose the ticket and attempt a safe automated fix.
+    Diagnose a ticket and perform only approved low-risk actions.
 
     Returns:
-        dict containing:
-        - diagnosis
-        - action
-        - success
-        - message
+        dict:
+            diagnosis
+            action
+            success
+            message
+
+    `success` means an actual corrective action succeeded.
+    A diagnostic check succeeding does NOT mean the ticket was fixed.
     """
 
-    text_lower = text.lower()
+    category = (category or "").strip()
+    text_lower = (text or "").lower()
 
     # ============================================================
-    # NETWORK / WIFI
+    # NETWORK / CONNECTIVITY
     # ============================================================
 
-    if category == "Network":
+    if category in {
+        "Network & Connectivity",
+        "Network",
+    }:
+
+        # --------------------------------------------------------
+        # VPN
+        # --------------------------------------------------------
+
+        if "vpn" in text_lower:
+            return {
+                "diagnosis": "VPN connectivity issue",
+                "action": "VPN connection requires verification",
+                "success": False,
+                "message": (
+                    "The system identified a VPN-related issue, but VPN "
+                    "credentials and corporate VPN configuration cannot be "
+                    "modified automatically. Reconnect to the company VPN "
+                    "or escalate to Network Support."
+                ),
+            }
 
         # --------------------------------------------------------
         # Wi-Fi / Internet / Connectivity
         # --------------------------------------------------------
 
-        if any(word in text_lower for word in [
-            "wifi",
-            "wi-fi",
-            "internet",
-            "connection",
-            "connectivity",
-            "network",
-        ]):
+        if any(
+            word in text_lower
+            for word in [
+                "wifi",
+                "wi-fi",
+                "internet",
+                "connection",
+                "connectivity",
+                "network",
+            ]
+        ):
 
             system = platform.system()
 
+            # ----------------------------------------------------
             # Windows
+            # ----------------------------------------------------
+
             if system == "Windows":
 
-                # Step 1: Check current connectivity
                 before_test = test_internet()
 
+                # Internet is already working.
+                # This is a successful diagnostic, NOT a successful fix.
                 if before_test["success"]:
                     return {
-                        "diagnosis": "Network connectivity issue",
-                        "action": "Connectivity tested",
-                        "success": True,
+                        "diagnosis": "Network connectivity checked",
+                        "action": "Connectivity test completed",
+                        "success": False,
                         "message": (
-                            "Your computer already has internet connectivity. "
-                            "The network appears to be working."
+                            "Internet connectivity is currently working. "
+                            "No corrective action was required."
                         ),
                     }
 
-                # Step 2: Flush DNS cache
+                # ------------------------------------------------
+                # Attempt safe DNS cache cleanup
+                # ------------------------------------------------
+
                 dns_result = run_command(
                     ["ipconfig", "/flushdns"],
                     timeout=10,
                 )
 
-                # Step 3: Test connectivity again
+                # ------------------------------------------------
+                # Test again after corrective action
+                # ------------------------------------------------
+
                 after_test = test_internet()
 
                 if after_test["success"]:
                     return {
                         "diagnosis": "Network/DNS connectivity issue",
-                        "action": "DNS cache cleared and connection restored",
+                        "action": "DNS cache cleared and connectivity restored",
                         "success": True,
                         "message": (
                             "The DNS cache was cleared successfully and "
@@ -128,8 +185,8 @@ def diagnose_and_fix(category: str, text: str):
                         "success": False,
                         "message": (
                             "The DNS cache was cleared, but internet "
-                            "connectivity is still unavailable. "
-                            "Further network investigation is required."
+                            "connectivity is still unavailable. Further "
+                            "network investigation is required."
                         ),
                     }
 
@@ -138,85 +195,78 @@ def diagnose_and_fix(category: str, text: str):
                     "action": "Network diagnostic attempted",
                     "success": False,
                     "message": (
-                        "The automatic network fix could not be completed. "
-                        "A support agent should investigate the connection."
+                        "The automatic network diagnostic could not complete "
+                        "the corrective step. A support agent should "
+                        "investigate the connection."
                     ),
                 }
 
+            # ----------------------------------------------------
             # Linux / macOS
-            else:
+            # ----------------------------------------------------
 
-                before_test = test_internet()
+            before_test = test_internet()
 
-                if before_test["success"]:
-                    return {
-                        "diagnosis": "Network connectivity issue",
-                        "action": "Connectivity tested",
-                        "success": True,
-                        "message": (
-                            "Your computer already has internet connectivity."
-                        ),
-                    }
-
+            if before_test["success"]:
                 return {
-                    "diagnosis": "Network connectivity issue",
-                    "action": "Connectivity diagnostic performed",
+                    "diagnosis": "Network connectivity checked",
+                    "action": "Connectivity test completed",
                     "success": False,
                     "message": (
-                        "Internet connectivity could not be verified. "
-                        "Further network investigation is required."
+                        "Internet connectivity is currently working. "
+                        "No corrective action was required."
                     ),
                 }
 
-        # --------------------------------------------------------
-        # VPN
-        # --------------------------------------------------------
-
-        if "vpn" in text_lower:
-
             return {
-                "diagnosis": "VPN connectivity issue",
-                "action": "VPN connection requires verification",
+                "diagnosis": "Network connectivity issue",
+                "action": "Connectivity diagnostic performed",
                 "success": False,
                 "message": (
-                    "The system identified a VPN issue, but VPN credentials "
-                    "and corporate VPN configuration cannot be modified "
-                    "automatically. Please reconnect to the company VPN "
-                    "or escalate to Network Support."
+                    "Internet connectivity could not be verified. "
+                    "Further network investigation is required."
                 ),
             }
 
     # ============================================================
-    # APPLICATION / SOFTWARE
+    # SOFTWARE / APPLICATION
     # ============================================================
 
-    if category == "Application":
+    if category in {
+        "Software & Applications",
+        "Application",
+    }:
 
-        if any(word in text_lower for word in [
-            "crash",
-            "crashing",
-            "not responding",
-            "application",
-            "app",
-            "software",
-        ]):
-
+        if any(
+            word in text_lower
+            for word in [
+                "crash",
+                "crashing",
+                "not responding",
+                "application",
+                "app",
+                "software",
+            ]
+        ):
             return {
                 "diagnosis": "Application/software issue",
                 "action": "Application restart recommended",
                 "success": False,
                 "message": (
                     "The application appears to have a software problem. "
-                    "A restart is recommended. The AI did not force-close "
+                    "A restart is recommended. Resolve IQ did not force-close "
                     "the application to avoid losing unsaved work."
                 ),
             }
 
     # ============================================================
-    # STORAGE
+    # STORAGE / FILES
     # ============================================================
 
-    if category == "Storage":
+    if category in {
+        "Storage & Files",
+        "Storage",
+    }:
 
         try:
             total, used, free = shutil.disk_usage("/")
@@ -226,7 +276,6 @@ def diagnose_and_fix(category: str, text: str):
             used_percent = (used / total) * 100
 
             if free_gb < 2:
-
                 return {
                     "diagnosis": "Storage capacity issue",
                     "action": "Storage usage analyzed",
@@ -234,62 +283,68 @@ def diagnose_and_fix(category: str, text: str):
                     "message": (
                         f"Only {free_gb:.1f} GB of {total_gb:.1f} GB "
                         f"is available ({used_percent:.0f}% used). "
-                        "Automatic file deletion was not performed "
-                        "for safety. Manual cleanup is required."
+                        "Automatic file deletion was not performed for "
+                        "safety. Manual cleanup is required."
                     ),
                 }
 
             return {
-                "diagnosis": "Storage issue",
+                "diagnosis": "Storage usage checked",
                 "action": "Storage usage analyzed",
-                "success": True,
+                "success": False,
                 "message": (
-                    f"Storage check completed. "
-                    f"{free_gb:.1f} GB of free space is available."
+                    f"Storage check completed. {free_gb:.1f} GB of free "
+                    "space is available. No corrective action was required."
                 ),
             }
 
-        except Exception as e:
-
+        except Exception as exc:
             return {
-                "diagnosis": "Storage capacity issue",
+                "diagnosis": "Storage capacity check failed",
                 "action": "Storage analysis attempted",
                 "success": False,
-                "message": f"Could not analyze storage: {e}",
+                "message": (
+                    f"Could not analyze storage safely: {exc}"
+                ),
             }
 
     # ============================================================
     # SECURITY
     # ============================================================
 
-    if category == "Security":
+    if category in {
+        "Security Operations",
+        "Security",
+    }:
 
         return {
             "diagnosis": "Potential security incident",
             "action": "No automatic modification performed",
             "success": False,
             "message": (
-                "Security issues require human expert review. "
-                "The system did not modify accounts, passwords, "
-                "files, or security settings automatically."
+                "Security issues require human expert review. Resolve IQ "
+                "did not modify accounts, passwords, files, or security "
+                "settings automatically."
             ),
         }
 
     # ============================================================
-    # ACCESS MANAGEMENT
+    # ACCOUNT / ACCESS MANAGEMENT
     # ============================================================
 
-    if category == "Access Management":
+    if category in {
+        "Account & Access",
+        "Access Management",
+    }:
 
         return {
             "diagnosis": "Account/access issue",
             "action": "Account status identified",
             "success": False,
             "message": (
-                "The issue appears to involve account access. "
-                "Password resets, account unlocking, and permission "
-                "changes require authorization and were not performed "
-                "automatically."
+                "The issue appears to involve account access. Password "
+                "resets, account unlocking, and permission changes require "
+                "authorization and were not performed automatically."
             ),
         }
 
@@ -297,16 +352,19 @@ def diagnose_and_fix(category: str, text: str):
     # DATABASE
     # ============================================================
 
-    if category == "Database":
+    if category in {
+        "Database & Storage",
+        "Database",
+    }:
 
         return {
-            "diagnosis": "Database connectivity issue",
+            "diagnosis": "Database issue",
             "action": "Database modification avoided",
             "success": False,
             "message": (
                 "The database issue was identified, but no database "
-                "modification was performed automatically. "
-                "Administrator review is required."
+                "modification was performed automatically. Administrator "
+                "review is required."
             ),
         }
 

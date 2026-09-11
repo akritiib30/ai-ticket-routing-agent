@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}AI Pipeline Architecture — Resolve IQ{% endblock %}
+
+{% block page_header %}
+<div class="page-title">AI Decision Intelligence</div>
+<div class="page-heading">Intelligent Ticket Processing Pipeline</div>
+{% endblock %}
+
+{% block content %}
+<div class="pipeline-page-wrapper">
+
+    <!-- HERO INTRO -->
+    <div class="card pipeline-hero-card">
+        <div class="hero-content">
+
+            <div class="greeting-badge">
+                <span class="status-dot online"></span>
+                <span>AI Decision Engine Active</span>
+            </div>
+
+            <h2>End-to-End Intelligent Resolution Architecture</h2>
+
+            <p>
+                Every incoming support ticket passes through a 9-stage intelligent
+                pipeline. Resolve IQ classifies the issue, assigns the appropriate
+                department, retrieves relevant historical cases, assesses classifier
+                confidence, prepares safe remediation guidance, detects recurring
+                patterns, and applies human-review safeguards when required.
+            </p>
+
+        </div>
+    </div>
+
+
+    <!-- 9-STAGE VISUAL INTERACTIVE FLOW -->
+    <div class="card">
+
+        <div class="card-header">
+
+            <div class="card-title">
+                <div class="card-title-icon">
+                    <i class="fa-solid fa-route"></i>
+                </div>
+
+                Lifecycle Stages
+            </div>
+
+            <span class="badge badge-purple">
+                Click stage to inspect deep-dive
+            </span>
+
+        </div>
+
+
+        <div class="interactive-pipeline-grid">
+
+            <!-- STAGE 01 -->
+            <a href="/submit-ticket" class="stage-card">
+
+                <div class="stage-badge">
+                    STAGE 01
+                </div>
+
+                <div class="stage-icon icon-blue">
+                    <i class="fa-solid fa-inbox"></i>
+                </div>
+
+                <div class="stage-name">
+                    Ticket Intake
+                </div>
+
+                <div class="stage-desc">
+                    Captures subject, description, requester information,
+                    priority, and available attachments.
+                </div>
+
+            </a>
+
+
+            <!-- STAGE 02 -->
+            <a href="/ai-pipeline/classification" class="stage-card highlight">
+
+                <div class="stage-badge">
+                    STAGE 02
+                </div>
+
+                <div class="stage-icon icon-purple">
+                    <i class="fa-solid fa-tags"></i>
+                </div>
+
+                <div class="stage-name">
+                    AI Classification
+                </div>
+
+                <div class="stage-desc">
+                    Predicts the support category using trained text
+                    vectorization and probabilistic classification.
+                </div>
+
+                <span class="stage-link">
+                    Inspect Classification
+                    <i class="fa-solid fa-arrow-right"></i>
+                </span>
+
+            </a>
+
+
+            <!-- STAGE 03 -->
+            <div class="stage-card">
+
+                <div class="stage-badge">
+                    STAGE 03
+                </div>
+
+                <div class="stage-icon icon-cyan">
+                    <i class="fa-solid fa-sitemap"></i>
+                </div>
+
+                <div class="stage-name">
+                    Smart Routing
+                </div>
+
+                <div class="stage-desc">
+                    Maps the predicted category to the appropriate
+                    support or engineering department.
+                </div>
+
+            </div>
+
+
+            <!-- STAGE 04 -->
+            <a href="/ai-pipeline/rag" class="stage-card highlight">
+
+                <div class="stage-badge">
+                    STAGE 04
+                </div>
+
+                <div class="stage-icon icon-green">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+
+                <div class="stage-name">
+                    Knowledge Retrieval
+                </div>
+
+                <div class="stage-desc">
+                    Searches historical tickets and surfaces up to
+                    three relevant cases and their recorded resolutions.
+                </div>
+
+                <span class="stage-link">
+                    Inspect Retrieval
+                    <i class="fa-solid fa-arrow-right"></i>
+                </span>
+
+            </a>
+
+
+            <!-- STAGE 05 -->
+            <div class="stage-card">
+
+                <div class="stage-badge">
+                    STAGE 05
+                </div>
+
+                <div class="stage-icon icon-yellow">
+                    <i class="fa-solid fa-lightbulb"></i>
+                </div>
+
+                <div class="stage-name">
+                    Resolution Synthesis
+                </div>
+
+                <div class="stage-desc">
+                    Generates a practical resolution suggestion using
+                    the most relevant historical ticket information.
+                </div>
+
+            </div>
+
+
+            <!-- STAGE 06 -->
+            <a href="/ai-pipeline/confidence" class="stage-card highlight">
+
+                <div class="stage-badge">
+                    STAGE 06
+                </div>
+
+                <div class="stage-icon icon-purple">
+                    <i class="fa-solid fa-bullseye"></i>
+                </div>
+
+                <div class="stage-name">
+                    Confidence Scorer
+                </div>
+
+                <div class="stage-desc">
+                    Converts classifier probability into High, Medium,
+                    and Low confidence decision tiers.
+                </div>
+
+                <span class="stage-link">
+                    Inspect Confidence
+                    <i class="fa-solid fa-arrow-right"></i>
+                </span>
+
+            </a>
+
+
+            <!-- STAGE 07 -->
+            <div class="stage-card">
+
+                <div class="stage-badge">
+                    STAGE 07
+                </div>
+
+                <div class="stage-icon icon-blue">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </div>
+
+                <div class="stage-name">
+                    Safe Remediation
+                </div>
+
+                <div class="stage-desc">
+                    Prepares or performs supported non-destructive
+                    diagnostics while keeping sensitive operations
+                    within human-control boundaries.
+                </div>
+
+            </div>
+
+
+            <!-- STAGE 08 -->
+            <div class="stage-card">
+
+                <div class="stage-badge">
+                    STAGE 08
+                </div>
+
+                <div class="stage-icon icon-cyan">
+                    <i class="fa-solid fa-repeat"></i>
+                </div>
+
+                <div class="stage-name">
+                    Recurring Detection
+                </div>
+
+                <div class="stage-desc">
+                    Identifies recurring issue patterns when multiple
+                    similar incidents appear in the ticket history.
+                </div>
+
+            </div>
+
+
+            <!-- STAGE 09 -->
+            <a href="/ai-pipeline/escalation" class="stage-card highlight">
+
+                <div class="stage-badge">
+                    STAGE 09
+                </div>
+
+                <div class="stage-icon icon-red">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+
+                <div class="stage-name">
+                    Escalation Safeguard
+                </div>
+
+                <div class="stage-desc">
+                    Applies confidence and safety boundaries to identify
+                    tickets requiring human specialist attention.
+                </div>
+
+                <span class="stage-link">
+                    Inspect Escalation
+                    <i class="fa-solid fa-arrow-right"></i>
+                </span>
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

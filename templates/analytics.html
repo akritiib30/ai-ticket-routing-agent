@@ -1,0 +1,1258 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics — Resolve IQ Operations Intelligence{% endblock %}
+
+{% block page_header %}
+<div class="page-title">Operations Intelligence</div>
+<div class="page-heading">Support Analytics &amp; Performance Trends</div>
+{% endblock %}
+
+{% block content %}
+
+<div class="analytics-page-wrapper">
+
+    {% if analytics.total_tickets > 0 %}
+
+    <!-- =====================================================
+         TOP KPI ROW
+         ===================================================== -->
+
+    <div class="kpi-grid">
+
+        <!-- TOTAL TICKETS -->
+        <div class="kpi-card">
+
+            <div class="kpi-top">
+                <span class="kpi-label">
+                    Total Tickets Analyzed
+                </span>
+
+                <div class="kpi-icon icon-purple">
+                    <i class="fa-solid fa-ticket"></i>
+                </div>
+            </div>
+
+            <div class="kpi-value">
+                {{ analytics.total_tickets }}
+            </div>
+
+            <div class="kpi-meta">
+                All-time database count
+            </div>
+
+        </div>
+
+
+        <!-- AVERAGE CONFIDENCE -->
+        <div class="kpi-card">
+
+            <div class="kpi-top">
+                <span class="kpi-label">
+                    Average AI Confidence
+                </span>
+
+                <div class="kpi-icon icon-green">
+                    <i class="fa-solid fa-bullseye"></i>
+                </div>
+            </div>
+
+            <div class="kpi-value">
+                {{ (analytics.avg_confidence * 100)|round|int }}%
+            </div>
+
+            <div class="kpi-meta text-success">
+                Classifier probability score
+            </div>
+
+        </div>
+
+
+        <!-- ESCALATION RATE -->
+        <div class="kpi-card">
+
+            <div class="kpi-top">
+                <span class="kpi-label">
+                    Escalation Rate
+                </span>
+
+                <div class="kpi-icon icon-red">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+
+            <div class="kpi-value">
+                {{ analytics.escalation_rate }}%
+            </div>
+
+            <div class="kpi-meta text-warning">
+                {{ analytics.escalated_count }}
+                of
+                {{ analytics.total_tickets }}
+                tickets
+            </div>
+
+        </div>
+
+
+        <!-- RECURRING ISSUE RATE -->
+        <div class="kpi-card">
+
+            <div class="kpi-top">
+                <span class="kpi-label">
+                    Recurring Issue Rate
+                </span>
+
+                <div class="kpi-icon icon-blue">
+                    <i class="fa-solid fa-repeat"></i>
+                </div>
+            </div>
+
+            <div class="kpi-value">
+                {{ analytics.recurring_rate }}%
+            </div>
+
+            <div class="kpi-meta text-info">
+                {{ analytics.recurring_count }}
+                recurring patterns
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         CHARTS GRID
+         ===================================================== -->
+
+    <div class="charts-page-grid">
+
+
+        <!-- =================================================
+             1. CATEGORY DISTRIBUTION
+             ================================================= -->
+
+        <div class="card chart-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+
+                        <div class="card-title-icon">
+                            <i class="fa-solid fa-chart-pie"></i>
+                        </div>
+
+                        Incident Volume by Category
+
+                    </div>
+
+                    <p class="section-subtitle">
+                        Breakdown of support tickets across functional domains.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="chart-canvas-container">
+                <canvas id="analyticsCategoryChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             2. PRIORITY DISTRIBUTION
+             ================================================= -->
+
+        <div class="card chart-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+
+                        <div class="card-title-icon">
+                            <i class="fa-solid fa-chart-column"></i>
+                        </div>
+
+                        Tickets by Priority Level
+
+                    </div>
+
+                    <p class="section-subtitle">
+                        Critical, High, Medium, and Low ticket distribution.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="chart-canvas-container">
+                <canvas id="analyticsPriorityChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             3. STATUS DISTRIBUTION
+             ================================================= -->
+
+        <div class="card chart-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+
+                        <div class="card-title-icon">
+                            <i class="fa-solid fa-circle-notch"></i>
+                        </div>
+
+                        Lifecycle Status Distribution
+
+                    </div>
+
+                    <p class="section-subtitle">
+                        Current distribution of Open, In Progress,
+                        Resolved, and Closed tickets.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="chart-canvas-container">
+                <canvas id="analyticsStatusChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             4. AI CONFIDENCE DISTRIBUTION
+             ================================================= -->
+
+        <div class="card chart-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+
+                        <div class="card-title-icon">
+                            <i class="fa-solid fa-gauge-high"></i>
+                        </div>
+
+                        AI Confidence Distribution
+
+                    </div>
+
+                    <p class="section-subtitle">
+                        High (&ge;85%), Medium (60-84.9%),
+                        and Low (&lt;60%) classifier confidence.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="chart-canvas-container">
+                <canvas id="analyticsConfidenceChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             5. HANDLING DECISION
+             ================================================= -->
+
+        <div class="card chart-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+
+                        <div class="card-title-icon">
+                            <i class="fa-solid fa-hand-holding-hand"></i>
+                        </div>
+
+                        Handling Decisions
+
+                    </div>
+
+                    <p class="section-subtitle">
+                        Accepted standard handling vs. tickets
+                        designated for human escalation.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="chart-canvas-container">
+                <canvas id="analyticsHandlingChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             6. RESOLUTION OWNERSHIP
+             ================================================= -->
+
+        <div class="card chart-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+
+                        <div class="card-title-icon">
+                            <i class="fa-solid fa-user-gear"></i>
+                        </div>
+
+                        Resolution Ownership
+
+                    </div>
+
+                    <p class="section-subtitle">
+                        Tickets currently marked as having an
+                        AI-assisted resolution path or requiring a human fix.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="chart-canvas-container">
+                <canvas id="analyticsOwnershipChart"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             7. DEPARTMENT DISTRIBUTION
+             ================================================= -->
+
+        <div class="card chart-card full-width">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+
+                        <div class="card-title-icon">
+                            <i class="fa-solid fa-sitemap"></i>
+                        </div>
+
+                        Workload Distribution by Routing Department
+
+                    </div>
+
+                    <p class="section-subtitle">
+                        Volume of tickets routed to each specialized support team.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="chart-canvas-container"
+                 style="height: 260px;">
+
+                <canvas id="analyticsDeptChart"></canvas>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    {% else %}
+
+    <!-- =====================================================
+         EMPTY STATE
+         ===================================================== -->
+
+    <div class="card"
+         style="padding: 60px 20px; text-align: center;">
+
+        <div class="empty-state">
+
+            <div class="empty-icon"
+                 style="width: 72px;
+                        height: 72px;
+                        font-size: 32px;">
+
+                <i class="fa-solid fa-chart-pie"></i>
+
+            </div>
+
+
+            <h2>
+                No Ticket Analytics Available
+            </h2>
+
+
+            <p style="max-width: 480px;
+                      margin: 10px auto 24px;">
+
+                There are currently no tickets stored in the database.
+                Analyze your first support incident to generate
+                real-time metrics, charts, and distribution insights.
+
+            </p>
+
+
+            <a href="/submit-ticket"
+               class="btn btn-primary btn-lg">
+
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+
+                Submit First Ticket
+
+            </a>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+{% if analytics.total_tickets > 0 %}
+
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    /*
+     * Flask safely serializes the analytics object into JavaScript.
+     */
+    const analytics =
+        {{ analytics | tojson }};
+
+
+    /* =========================================================
+       COMMON CHART DEFAULTS
+       ========================================================= */
+
+    const textColor = "#94a3b8";
+    const gridColor = "rgba(255,255,255,0.05)";
+    const borderColor = "#111628";
+
+
+    /*
+     * Destroy an existing Chart.js instance if the page is
+     * initialized again.
+     */
+    function createChart(canvas, config) {
+
+        if (!canvas || typeof Chart === "undefined") {
+            return null;
+        }
+
+        const existing =
+            Chart.getChart(canvas);
+
+        if (existing) {
+            existing.destroy();
+        }
+
+        return new Chart(canvas, config);
+    }
+
+
+    /* =========================================================
+       1. CATEGORY CHART
+       ========================================================= */
+
+    const catCtx =
+        document.getElementById(
+            "analyticsCategoryChart"
+        );
+
+
+    if (catCtx) {
+
+        const categories =
+            analytics.categories || {};
+
+        const catLabels =
+            Object.keys(categories);
+
+        const catValues =
+            Object.values(categories);
+
+
+        createChart(catCtx, {
+
+            type: "doughnut",
+
+            data: {
+
+                labels:
+                    catLabels.length
+                        ? catLabels
+                        : ["No data"],
+
+                datasets: [{
+
+                    data:
+                        catValues.length
+                            ? catValues
+                            : [1],
+
+                    backgroundColor: [
+                        "#7c5cff",
+                        "#29d9ff",
+                        "#ff4fa3",
+                        "#35e0a1",
+                        "#ffc857",
+                        "#ff6577",
+                        "#a855f7",
+                        "#4f8cff",
+                        "#f97316"
+                    ],
+
+                    borderColor:
+                        borderColor,
+
+                    borderWidth: 2
+
+                }]
+
+            },
+
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+
+                        position: "right",
+
+                        labels: {
+
+                            color:
+                                textColor,
+
+                            font: {
+                                size: 11
+                            }
+
+                        }
+
+                    }
+
+                },
+
+                cutout: "68%"
+
+            }
+
+        });
+
+    }
+
+
+    /* =========================================================
+       2. PRIORITY CHART
+       ========================================================= */
+
+    const prioCtx =
+        document.getElementById(
+            "analyticsPriorityChart"
+        );
+
+
+    if (prioCtx) {
+
+        const order = [
+            "Low",
+            "Medium",
+            "High",
+            "Critical"
+        ];
+
+
+        const priorities =
+            analytics.priorities || {};
+
+
+        const pValues =
+            order.map(
+                key =>
+                    Number(
+                        priorities[key] || 0
+                    )
+            );
+
+
+        createChart(prioCtx, {
+
+            type: "bar",
+
+            data: {
+
+                labels:
+                    order,
+
+                datasets: [{
+
+                    data:
+                        pValues,
+
+                    backgroundColor: [
+                        "#35e0a1",
+                        "#29d9ff",
+                        "#ffc857",
+                        "#ff6577"
+                    ],
+
+                    borderRadius:
+                        6
+
+                }]
+
+            },
+
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    }
+
+                },
+
+                scales: {
+
+                    x: {
+
+                        ticks: {
+                            color:
+                                textColor
+                        },
+
+                        grid: {
+                            display: false
+                        }
+
+                    },
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        ticks: {
+
+                            color:
+                                textColor,
+
+                            stepSize: 1
+
+                        },
+
+                        grid: {
+                            color:
+                                gridColor
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+
+
+    /* =========================================================
+       3. STATUS CHART
+       ========================================================= */
+
+    const statusCtx =
+        document.getElementById(
+            "analyticsStatusChart"
+        );
+
+
+    if (statusCtx) {
+
+        const statuses =
+            analytics.statuses || {};
+
+
+        const statusLabels =
+            Object.keys(statuses);
+
+
+        const statusValues =
+            Object.values(statuses);
+
+
+        createChart(statusCtx, {
+
+            type: "doughnut",
+
+            data: {
+
+                labels:
+                    statusLabels.length
+                        ? statusLabels
+                        : ["No data"],
+
+                datasets: [{
+
+                    data:
+                        statusValues.length
+                            ? statusValues
+                            : [1],
+
+                    backgroundColor: [
+                        "#ffc857",
+                        "#29d9ff",
+                        "#35e0a1",
+                        "#64748b",
+                        "#ff6577"
+                    ],
+
+                    borderColor:
+                        borderColor,
+
+                    borderWidth: 2
+
+                }]
+
+            },
+
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+
+                        position: "bottom",
+
+                        labels: {
+
+                            color:
+                                textColor,
+
+                            font: {
+                                size: 11
+                            }
+
+                        }
+
+                    }
+
+                },
+
+                cutout: "62%"
+
+            }
+
+        });
+
+    }
+
+
+    /* =========================================================
+       4. CONFIDENCE CHART
+       ========================================================= */
+
+    const confCtx =
+        document.getElementById(
+            "analyticsConfidenceChart"
+        );
+
+
+    if (confCtx) {
+
+        const confDist =
+            analytics.confidence_distribution || {};
+
+
+        createChart(confCtx, {
+
+            type: "bar",
+
+            data: {
+
+                labels: [
+                    "High (>=85%)",
+                    "Medium (60-84.9%)",
+                    "Low (<60%)"
+                ],
+
+                datasets: [{
+
+                    data: [
+
+                        Number(
+                            confDist.High || 0
+                        ),
+
+                        Number(
+                            confDist.Medium || 0
+                        ),
+
+                        Number(
+                            confDist.Low || 0
+                        )
+
+                    ],
+
+                    backgroundColor: [
+                        "#35e0a1",
+                        "#ffc857",
+                        "#ff6577"
+                    ],
+
+                    borderRadius:
+                        6
+
+                }]
+
+            },
+
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    }
+
+                },
+
+                scales: {
+
+                    x: {
+
+                        ticks: {
+
+                            color:
+                                textColor,
+
+                            font: {
+                                size: 11
+                            }
+
+                        },
+
+                        grid: {
+                            display: false
+                        }
+
+                    },
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        ticks: {
+
+                            color:
+                                textColor,
+
+                            stepSize: 1
+
+                        },
+
+                        grid: {
+
+                            color:
+                                gridColor
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+
+
+    /* =========================================================
+       5. HANDLING DECISION CHART
+       ========================================================= */
+
+    const handlingCtx =
+        document.getElementById(
+            "analyticsHandlingChart"
+        );
+
+
+    if (handlingCtx) {
+
+        const handling =
+            analytics.handling_decisions || {};
+
+
+        const accepted =
+            Number(
+                handling["Accepted"] || 0
+            );
+
+
+        const escalated =
+            Number(
+                handling["Escalated"] || 0
+            );
+
+
+        createChart(handlingCtx, {
+
+            type: "doughnut",
+
+            data: {
+
+                labels: [
+                    "Accepted",
+                    "Escalated"
+                ],
+
+                datasets: [{
+
+                    data: [
+                        accepted,
+                        escalated
+                    ],
+
+                    backgroundColor: [
+                        "#35e0a1",
+                        "#ff6577"
+                    ],
+
+                    borderColor:
+                        borderColor,
+
+                    borderWidth: 2
+
+                }]
+
+            },
+
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+
+                        position: "bottom",
+
+                        labels: {
+
+                            color:
+                                textColor,
+
+                            font: {
+                                size: 11
+                            }
+
+                        }
+
+                    }
+
+                },
+
+                cutout: "62%"
+
+            }
+
+        });
+
+    }
+
+
+    /* =========================================================
+       6. RESOLUTION OWNERSHIP CHART
+       ========================================================= */
+
+    const ownerCtx =
+        document.getElementById(
+            "analyticsOwnershipChart"
+        );
+
+
+    if (ownerCtx) {
+
+        const ownership =
+            analytics.resolution_ownerships || {};
+
+
+        const aiAvailable =
+            Number(
+                ownership[
+                    "AI Resolution Available"
+                ] || 0
+            );
+
+
+        const humanRequired =
+            Number(
+                ownership[
+                    "Human Fix Required"
+                ] || 0
+            );
+
+
+        createChart(ownerCtx, {
+
+            type: "doughnut",
+
+            data: {
+
+                labels: [
+                    "AI Resolution Available",
+                    "Human Fix Required"
+                ],
+
+                datasets: [{
+
+                    data: [
+                        aiAvailable,
+                        humanRequired
+                    ],
+
+                    backgroundColor: [
+                        "#29d9ff",
+                        "#ff4fa3"
+                    ],
+
+                    borderColor:
+                        borderColor,
+
+                    borderWidth: 2
+
+                }]
+
+            },
+
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+
+                        position: "bottom",
+
+                        labels: {
+
+                            color:
+                                textColor,
+
+                            font: {
+                                size: 11
+                            }
+
+                        }
+
+                    }
+
+                },
+
+                cutout: "62%"
+
+            }
+
+        });
+
+    }
+
+
+    /* =========================================================
+       7. DEPARTMENT DISTRIBUTION
+       ========================================================= */
+
+    const deptCtx =
+        document.getElementById(
+            "analyticsDeptChart"
+        );
+
+
+    if (deptCtx) {
+
+        const departments =
+            analytics.departments || {};
+
+
+        const deptLabels =
+            Object.keys(departments);
+
+
+        const deptValues =
+            Object.values(departments);
+
+
+        createChart(deptCtx, {
+
+            type: "bar",
+
+            data: {
+
+                labels:
+                    deptLabels.length
+                        ? deptLabels
+                        : ["General IT"],
+
+                datasets: [{
+
+                    label:
+                        "Tickets Routed",
+
+                    data:
+                        deptValues.length
+                            ? deptValues
+                            : [0],
+
+                    backgroundColor:
+                        "#7c5cff",
+
+                    borderRadius:
+                        6
+
+                }]
+
+            },
+
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    }
+
+                },
+
+                scales: {
+
+                    x: {
+
+                        ticks: {
+
+                            color:
+                                textColor,
+
+                            font: {
+                                size: 11
+                            }
+
+                        },
+
+                        grid: {
+                            display: false
+                        }
+
+                    },
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        ticks: {
+
+                            color:
+                                textColor,
+
+                            stepSize: 1
+
+                        },
+
+                        grid: {
+
+                            color:
+                                gridColor
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+
+});
+
+</script>
+
+{% endif %}
+
+{% endblock %}

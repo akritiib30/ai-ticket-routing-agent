@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}AI Confidence — Resolve IQ{% endblock %}
+
+{% block page_header %}
+<div class="page-title">AI Decision Intelligence</div>
+<div class="page-heading">AI Confidence Assessment</div>
+{% endblock %}
+
+{% block content %}
+<div class="pipeline-subpage-wrapper">
+
+    <!-- OVERVIEW CARD -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    Decision Confidence Framework
+                </div>
+                <p class="section-subtitle">
+                    Resolve IQ uses the classifier probability score to assess decision confidence and determine when additional human review may be appropriate.
+                </p>
+            </div>
+
+            <span class="badge badge-purple">
+                <i class="fa-solid fa-calculator"></i>
+                Probability-Based Tiers
+            </span>
+        </div>
+
+        <div class="confidence-tiers-grid">
+
+            <!-- HIGH CONFIDENCE -->
+            <div class="tier-card tier-high">
+                <div class="tier-header">
+                    <span class="badge badge-high">HIGH CONFIDENCE</span>
+                    <span class="tier-threshold">&ge; 85%</span>
+                </div>
+
+                <h4>Strong Classification Signal</h4>
+
+                <p>
+                    The classifier assigns a probability of at least 85% to the predicted category. The ticket can continue through the standard routing and resolution workflow, subject to operational confirmation.
+                </p>
+
+                <div class="tier-meta">
+                    {{ analytics.confidence_distribution.High }} ticket{% if analytics.confidence_distribution.High != 1 %}s{% endif %} in this tier
+                </div>
+            </div>
+
+
+            <!-- MEDIUM CONFIDENCE -->
+            <div class="tier-card tier-medium">
+                <div class="tier-header">
+                    <span class="badge badge-medium">MEDIUM CONFIDENCE</span>
+                    <span class="tier-threshold">60% – 84.9%</span>
+                </div>
+
+                <h4>Review Recommended</h4>
+
+                <p>
+                    The classifier has a moderate probability for the predicted category. Recommendations can continue through the workflow, with human confirmation recommended before final resolution when appropriate.
+                </p>
+
+                <div class="tier-meta">
+                    {{ analytics.confidence_distribution.Medium }} ticket{% if analytics.confidence_distribution.Medium != 1 %}s{% endif %} in this tier
+                </div>
+            </div>
+
+
+            <!-- LOW CONFIDENCE -->
+            <div class="tier-card tier-low">
+                <div class="tier-header">
+                    <span class="badge badge-low">LOW CONFIDENCE</span>
+                    <span class="tier-threshold">&lt; 60%</span>
+                </div>
+
+                <h4>Human Review Priority</h4>
+
+                <p>
+                    The classifier has a low probability for the predicted category. These tickets should receive human review, particularly when the issue is ambiguous, sensitive, or outside the supported automated workflow.
+                </p>
+
+                <div class="tier-meta">
+                    {{ analytics.confidence_distribution.Low }} ticket{% if analytics.confidence_distribution.Low != 1 %}s{% endif %} in this tier
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- DISTRIBUTION CHART & STATS -->
+    <div class="dashboard-split-grid" style="margin-top: 20px;">
+
+        <!-- CONFIDENCE DISTRIBUTION -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-chart-column"></i>
+                    </div>
+                    Confidence Score Distribution
+                </div>
+            </div>
+
+            <div class="chart-canvas-container" style="height: 240px;">
+                <canvas id="confidenceTierChart"></canvas>
+            </div>
+        </div>
+
+
+        <!-- OPERATIONAL SUMMARY -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </div>
+                    Operational Impact Summary
+                </div>
+            </div>
+
+            <div class="confidence-summary-list">
+
+                <!-- AVERAGE CONFIDENCE -->
+                <div class="conf-summary-item">
+                    <div class="conf-sum-icon icon-green">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+
+                    <div>
+                        <strong>Overall Average Confidence</strong>
+
+                        <div style="
+                            font-size: 20px;
+                            font-weight: 700;
+                            color: var(--green);
+                            margin-top: 2px;
+                        ">
+                            {{ (analytics.avg_confidence * 100)|round|int }}%
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- HIGH-CONFIDENCE SHARE -->
+                <div class="conf-summary-item">
+                    <div class="conf-sum-icon icon-purple">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+
+                    <div>
+                        <strong>High-Confidence Ticket Share</strong>
+
+                        <div style="
+                            font-size: 14px;
+                            color: var(--text);
+                            margin-top: 2px;
+                        ">
+                            {% if analytics.total_tickets > 0 %}
+                                {{ ((analytics.confidence_distribution.High / analytics.total_tickets) * 100)|round|int }}% of tickets have a classifier probability of 85% or higher
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- REVIEW SAFEGUARD -->
+                <div class="conf-summary-item">
+                    <div class="conf-sum-icon icon-red">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+
+                    <div>
+                        <strong>Human Review Safeguard</strong>
+
+                        <div style="
+                            font-size: 14px;
+                            color: var(--text);
+                            margin-top: 2px;
+                        ">
+                            Tickets below 60% classifier probability are treated as low-confidence decisions and should receive human review.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const canvas = document.getElementById("confidenceTierChart");
+
+    if (!canvas || typeof Chart === "undefined") {
+        return;
+    }
+
+    const confDist = {{ analytics.confidence_distribution | tojson }};
+
+    const highCount = Number(confDist.High || 0);
+    const mediumCount = Number(confDist.Medium || 0);
+    const lowCount = Number(confDist.Low || 0);
+
+    const existingChart = Chart.getChart(canvas);
+
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
+    new Chart(canvas, {
+        type: "bar",
+
+        data: {
+            labels: [
+                "High (>=85%)",
+                "Medium (60-84.9%)",
+                "Low (<60%)"
+            ],
+
+            datasets: [{
+                label: "Tickets",
+
+                data: [
+                    highCount,
+                    mediumCount,
+                    lowCount
+                ],
+
+                backgroundColor: [
+                    "#35e0a1",
+                    "#ffc857",
+                    "#ff6577"
+                ],
+
+                borderRadius: 8
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+
+            scales: {
+                x: {
+                    ticks: {
+                        color: "#94a3b8"
+                    },
+
+                    grid: {
+                        display: false
+                    }
+                },
+
+                y: {
+                    beginAtZero: true,
+
+                    ticks: {
+                        color: "#94a3b8",
+                        stepSize: 1
+                    },
+
+                    grid: {
+                        color: "rgba(255,255,255,0.05)"
+                    }
+                }
+            }
+        }
+    });
+
+});
+</script>
+{% endblock %}

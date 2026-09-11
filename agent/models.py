@@ -15,6 +15,8 @@ class Ticket:
 class ClassificationResult:
     category: str
     confidence: float
+    subcategory: str = ""
+    issue_type: str = ""
 
 
 @dataclass

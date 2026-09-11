@@ -1,12 +1,23 @@
 from .models import ConfidenceResult
 
 
-def assess(classification_result, retrieved_tickets):
+def assess(classification_result, retrieved_tickets=None):
     """
-    Calculate the confidence of the ticket classification.
+    Assess ticket classification confidence.
+
+    Confidence is based on the classifier's probability score.
+
+    Thresholds:
+        High   >= 0.85
+        Medium >= 0.60 and < 0.85
+        Low    < 0.60
+
+    Historical/RAG matches are intentionally not mixed into the
+    numerical confidence score. They are supporting evidence and
+    remain available separately in the pipeline result.
     """
 
-    score = classification_result.confidence
+    score = float(classification_result.confidence)
 
     if score >= 0.85:
         tier = "high"

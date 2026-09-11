@@ -1,0 +1,1565 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket {{ ticket.ticket_id }} — Resolve IQ Incident Dossier{% endblock %}
+
+{% block page_header %}
+<div class="page-title">Support Incident Dossier</div>
+<div class="page-heading">Ticket #{{ ticket.ticket_id }}</div>
+{% endblock %}
+
+{% block content %}
+<div class="ticket-detail-wrapper">
+
+    <!-- =========================================================
+         1. TOP HEADER & HIGH-LEVEL STATUS BAR
+         ========================================================= -->
+    <div class="card detail-header-card" style="margin-bottom: 20px;">
+        <div class="detail-header-left">
+
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+
+                <span class="ticket-id-large">
+                    {{ ticket.ticket_id }}
+                </span>
+
+                <span
+                    id="headerStatusBadge"
+                    class="badge
+                        {% if ticket.status in ('Resolved', 'Closed') %}
+                            badge-success
+                        {% elif ticket.status == 'In Progress' %}
+                            badge-info
+                        {% elif ticket.status == 'Escalated' or ticket.escalated %}
+                            badge-danger
+                        {% else %}
+                            badge-warning
+                        {% endif %}"
+                    style="font-size: 13px; padding: 6px 14px;"
+                >
+                    Status: {{ ticket.status }}
+                </span>
+
+                <span
+                    id="headerHandlingBadge"
+                    class="badge
+                        {% if ticket.handling_decision == 'Escalated' or ticket.escalated %}
+                            badge-danger
+                        {% else %}
+                            badge-success
+                        {% endif %}"
+                    style="font-size: 13px; padding: 6px 14px;"
+                >
+                    {{
+                        'Escalated to Specialist'
+                        if (ticket.handling_decision == 'Escalated' or ticket.escalated)
+                        else 'Standard Handling'
+                    }}
+                </span>
+
+                <span
+                    class="badge
+                        {% if ticket.resolution_ownership == 'Human Fix Required' or ticket.escalated %}
+                            badge-pink
+                        {% else %}
+                            badge-cyan
+                        {% endif %}"
+                    style="font-size: 13px; padding: 6px 14px;"
+                >
+                    {{
+                        ticket.resolution_ownership
+                        if ticket.resolution_ownership
+                        else ('Human Fix Required' if ticket.escalated else 'AI Resolution Available')
+                    }}
+                </span>
+
+            </div>
+
+            <div style="font-size: 13px; color: var(--muted); margin-top: 8px;">
+
+                <span>
+                    <i class="fa-solid fa-user"></i>
+                    {{ ticket.username }}
+                </span>
+
+                <span style="margin: 0 8px;">•</span>
+
+                <span>
+                    <i class="fa-solid fa-building"></i>
+                    {{ ticket.organization or 'Enterprise User' }}
+                </span>
+
+                <span style="margin: 0 8px;">•</span>
+
+                <span>
+                    <i class="fa-solid fa-clock"></i>
+                    {{ ticket.timestamp }}
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="detail-header-actions">
+
+            <a
+                href="/api/export/pdf?ticket_id={{ ticket.ticket_id }}"
+                class="btn btn-export"
+                title="Download Official Ticket PDF Dossier"
+            >
+                <i class="fa-solid fa-file-pdf"></i>
+                Download PDF
+            </a>
+
+            <a
+                href="/api/export/csv?search={{ ticket.ticket_id }}"
+                class="btn btn-secondary"
+                title="Export Ticket Data as CSV"
+            >
+                <i class="fa-solid fa-file-csv"></i>
+                Download CSV
+            </a>
+
+            <button
+                type="button"
+                class="btn btn-danger-outline"
+                id="deleteDetailTicketBtn"
+                data-ticket-id="{{ ticket.ticket_id }}"
+                title="Permanently Delete Ticket"
+            >
+                <i class="fa-solid fa-trash-can"></i>
+                Delete Ticket
+            </button>
+
+            <a href="/ticket-queue" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i>
+                Back to Queue
+            </a>
+
+        </div>
+    </div>
+
+
+    <!-- =========================================================
+         2. PRIMARY SECTION: WHAT IS WRONG & WHAT SHOULD BE DONE
+         ========================================================= -->
+    <div class="dashboard-split-grid" style="margin-bottom: 20px;">
+
+        <!-- CARD A: RECOMMENDED RESOLUTION -->
+        <div
+            class="card primary-action-card"
+            style="
+                border: 1px solid rgba(124, 92, 255, 0.45);
+                background: linear-gradient(
+                    155deg,
+                    rgba(21, 27, 54, 0.95),
+                    rgba(13, 17, 34, 0.95)
+                );
+                box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+            "
+        >
+
+            <div class="card-header">
+
+                <div>
+
+                    <div
+                        class="card-title"
+                        style="font-size: 17px; color: #ffffff;"
+                    >
+                        <div class="card-title-icon icon-yellow">
+                            <i class="fa-solid fa-lightbulb"></i>
+                        </div>
+
+                        Recommended Action Plan
+                    </div>
+
+                    <p class="section-subtitle">
+                        Guidance for resolving this support ticket.
+                    </p>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="btn btn-secondary btn-sm"
+                    id="copyResolutionBtn"
+                    title="Copy resolution steps to clipboard"
+                >
+                    <i class="fa-solid fa-copy"></i>
+                    <span id="copyBtnText">Copy Action Steps</span>
+                </button>
+
+            </div>
+
+
+            <div
+                class="resolution-box"
+                id="resolutionText"
+                style="
+                    margin-top: 12px;
+                    font-size: 14px;
+                    line-height: 1.6;
+                    padding: 18px;
+                    border-radius: 12px;
+                    background: rgba(0, 0, 0, 0.3);
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    color: #f1f5f9;
+                "
+            >
+                {{ ticket.resolution }}
+            </div>
+
+
+            <div
+                style="
+                    margin-top: 16px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                    padding-top: 12px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.06);
+                "
+            >
+
+                <div style="display: flex; align-items: center; gap: 8px;">
+
+                    <span style="font-size: 12px; color: var(--muted);">
+                        AI Confidence:
+                    </span>
+
+                    <strong style="color: var(--cyan); font-size: 13.5px;">
+                        {{ (ticket.confidence * 100)|round|int }}%
+                    </strong>
+
+                    <span
+                        class="badge
+                            {% if ticket.confidence >= 0.85 %}
+                                badge-high
+                            {% elif ticket.confidence >= 0.60 %}
+                                badge-medium
+                            {% else %}
+                                badge-low
+                            {% endif %}"
+                        style="font-size: 10px; padding: 2px 8px;"
+                    >
+                        {{ ticket.confidence_tier|upper }}
+                    </span>
+
+                </div>
+
+
+                <div style="font-size: 12px; color: var(--muted);">
+
+                    Target Queue:
+                    <strong style="color: var(--green);">
+                        {{ ticket.routing }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CARD B: REPORTED PROBLEM -->
+        <div class="card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title" style="font-size: 17px;">
+
+                        <div class="card-title-icon icon-blue">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                        </div>
+
+                        Reported Problem
+
+                    </div>
+
+                    <p class="section-subtitle">
+                        Requester's issue description and diagnostic details.
+                    </p>
+
+                </div>
+
+                <span class="badge badge-purple" style="font-size: 12px;">
+                    Category: {{ ticket.category }}
+                </span>
+
+            </div>
+
+
+            <div style="margin-top: 10px;">
+
+                <span class="field-label">
+                    Subject
+                </span>
+
+                <div
+                    style="
+                        font-size: 15px;
+                        font-weight: 700;
+                        color: #ffffff;
+                        margin-top: 4px;
+                    "
+                >
+                    {{ ticket.subject }}
+                </div>
+
+            </div>
+
+
+            <div style="margin-top: 14px;">
+
+                <span class="field-label">
+                    Full Description
+                </span>
+
+                <div
+                    class="description-box"
+                    style="
+                        margin-top: 6px;
+                        font-size: 13.5px;
+                        line-height: 1.6;
+                        max-height: 140px;
+                        overflow-y: auto;
+                    "
+                >
+                    {{ ticket.description }}
+                </div>
+
+            </div>
+
+
+            <div
+                style="
+                    margin-top: 14px;
+                    padding-top: 12px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.06);
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                "
+            >
+
+                <div>
+
+                    <span class="field-label">
+                        Priority
+                    </span>
+
+                    <div style="margin-top: 2px;">
+
+                        <span
+                            class="badge
+                                {% if ticket.priority == 'Critical' %}
+                                    badge-danger
+                                {% elif ticket.priority == 'High' %}
+                                    badge-warning
+                                {% elif ticket.priority == 'Low' %}
+                                    badge-success
+                                {% else %}
+                                    badge-info
+                                {% endif %}"
+                        >
+                            {{ ticket.priority }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <span class="field-label">
+                        Attachment
+                    </span>
+
+                    <div style="margin-top: 2px; font-size: 12.5px;">
+
+                        {% if ticket.attachment_name %}
+
+                            <span style="color: var(--cyan);">
+                                <i class="fa-solid fa-paperclip"></i>
+                                {{ ticket.attachment_name }}
+                            </span>
+
+                        {% else %}
+
+                            <span style="color: var(--muted);">
+                                None attached
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================================
+         3. OPERATIONAL TRIAGE & STATUS MANAGEMENT
+         ========================================================= -->
+    <div
+        class="card"
+        style="
+            margin-bottom: 20px;
+            border: 1px solid rgba(124, 92, 255, 0.3);
+            background: rgba(14, 18, 36, 0.9);
+        "
+    >
+
+        <div class="card-header">
+
+            <div>
+
+                <div class="card-title">
+
+                    <div class="card-title-icon icon-purple">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+
+                    Incident Triage &amp; Case Ownership
+
+                </div>
+
+                <p class="section-subtitle">
+                    Update status and designate whether AI-assisted guidance or human specialist intervention is active.
+                </p>
+
+            </div>
+
+            <span class="badge badge-info">
+                <i class="fa-solid fa-database"></i>
+                SQLite Persisted
+            </span>
+
+        </div>
+
+
+        <form
+            id="decisionControlsForm"
+            style="
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 16px;
+                align-items: flex-start;
+                margin-top: 14px;
+            "
+        >
+
+            <!-- STATUS CONTROL -->
+            <div
+                class="form-group"
+                style="margin-bottom: 0;"
+            >
+
+                <label for="detailStatusSelect">
+                    <i class="fa-solid fa-circle-notch"></i>
+                    Ticket Status
+                </label>
+
+                <select
+                    id="detailStatusSelect"
+                    class="form-control"
+                    style="
+                        background: #0b0f1e;
+                        border-color: rgba(255,255,255,0.12);
+                        color: #fff;
+                    "
+                >
+
+                    <option
+                        value="Open"
+                        {% if ticket.status == 'Open' %}selected{% endif %}
+                    >
+                        Open
+                    </option>
+
+                    <option
+                        value="In Progress"
+                        {% if ticket.status == 'In Progress' %}selected{% endif %}
+                    >
+                        In Progress
+                    </option>
+
+                    <option
+                        value="Resolved"
+                        {% if ticket.status == 'Resolved' %}selected{% endif %}
+                    >
+                        Resolved
+                    </option>
+
+                    <option
+                        value="Closed"
+                        {% if ticket.status == 'Closed' %}selected{% endif %}
+                    >
+                        Closed
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- HANDLING DECISION -->
+            <div
+                class="form-group"
+                style="margin-bottom: 0;"
+            >
+
+                <label for="detailHandlingSelect">
+                    <i class="fa-solid fa-hand-holding-hand"></i>
+                    Handling Decision
+                </label>
+
+                <select
+                    id="detailHandlingSelect"
+                    class="form-control"
+                    style="
+                        background: #0b0f1e;
+                        border-color: rgba(255,255,255,0.12);
+                        color: #fff;
+                    "
+                >
+
+                    <option
+                        value="Accepted"
+                        {% if ticket.handling_decision == 'Accepted' or (not ticket.handling_decision and not ticket.escalated) %}
+                            selected
+                        {% endif %}
+                    >
+                        Accepted
+                    </option>
+
+                    <option
+                        value="Escalated"
+                        {% if ticket.handling_decision == 'Escalated' or ticket.escalated %}
+                            selected
+                        {% endif %}
+                    >
+                        Escalated
+                    </option>
+
+                </select>
+
+
+                <div
+                    id="handlingCaptionText"
+                    style="font-size: 11.5px; margin-top: 6px;"
+                >
+
+                    {% if ticket.handling_decision == 'Escalated' or ticket.escalated %}
+
+                        <span class="text-warning">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            Specialist / human review required
+                        </span>
+
+                    {% else %}
+
+                        <span class="text-success">
+                            <i class="fa-solid fa-circle-check"></i>
+                            Standard support handling
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- RESOLUTION OWNERSHIP -->
+            <div
+                class="form-group"
+                style="margin-bottom: 0;"
+            >
+
+                <label for="detailOwnershipSelect">
+                    <i class="fa-solid fa-user-gear"></i>
+                    Resolution Ownership
+                </label>
+
+                <select
+                    id="detailOwnershipSelect"
+                    class="form-control"
+                    style="
+                        background: #0b0f1e;
+                        border-color: rgba(255,255,255,0.12);
+                        color: #fff;
+                    "
+                >
+
+                    <option
+                        value="AI Resolution Available"
+                        {% if ticket.resolution_ownership == 'AI Resolution Available' or (not ticket.resolution_ownership and not ticket.escalated) %}
+                            selected
+                        {% endif %}
+                    >
+                        AI Resolution Available
+                    </option>
+
+                    <option
+                        value="Human Fix Required"
+                        {% if ticket.resolution_ownership == 'Human Fix Required' or ticket.escalated %}
+                            selected
+                        {% endif %}
+                    >
+                        Human Fix Required
+                    </option>
+
+                </select>
+
+                <div
+                    style="
+                        font-size: 11.5px;
+                        margin-top: 6px;
+                        color: var(--muted);
+                    "
+                >
+                    AI-assisted guidance vs Human Fix Required
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <button
+                    type="button"
+                    class="btn btn-primary btn-lg"
+                    id="saveDecisionBtn"
+                    style="width: 100%; margin-top: 24px;"
+                >
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    Save Changes
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =========================================================
+         4. SECONDARY SECTION: SUPPORT EVIDENCE & DIAGNOSTIC DETAILS
+         ========================================================= -->
+    <div style="margin-bottom: 12px;">
+
+        <h3
+            style="
+                font-size: 15px;
+                color: var(--muted);
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+            "
+        >
+            <i class="fa-solid fa-microchip"></i>
+            Diagnostic Evidence &amp; System Intelligence
+        </h3>
+
+    </div>
+
+
+    <div class="detail-two-col-grid">
+
+        <!-- LEFT COLUMN -->
+        <div class="detail-col">
+
+            <!-- ROUTING & CLASSIFICATION -->
+            <div class="card">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+
+                        <div class="card-title-icon icon-cyan">
+                            <i class="fa-solid fa-sitemap"></i>
+                        </div>
+
+                        Classification &amp; Department Assignment
+
+                    </div>
+
+                </div>
+
+
+                <div class="routing-dual-grid">
+
+                    <div class="routing-box">
+
+                        <span class="field-label">
+                            Predicted Category
+                        </span>
+
+                        <div class="routing-main-val text-purple">
+                            {{ ticket.classification or ticket.category }}
+                        </div>
+
+                        {% if ticket.subcategory or ticket.issue_type %}
+
+                            <div
+                                style="
+                                    font-size: 11.5px;
+                                    color: var(--muted-light);
+                                    margin-top: 4px;
+                                "
+                            >
+
+                                {% if ticket.subcategory %}
+
+                                    <span>
+                                        Subcategory:
+                                        <strong style="color: var(--cyan);">
+                                            {{ ticket.subcategory }}
+                                        </strong>
+                                    </span>
+
+                                {% endif %}
+
+                                {% if ticket.subcategory and ticket.issue_type %}
+                                    •
+                                {% endif %}
+
+                                {% if ticket.issue_type %}
+
+                                    <span>
+                                        Issue:
+                                        <strong style="color: #a78bfa;">
+                                            {{ ticket.issue_type }}
+                                        </strong>
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+
+                        <div
+                            class="routing-sub-val"
+                            style="margin-top: 4px;"
+                        >
+
+                            <span class="text-cyan">
+                                {{
+                                    (ticket.classification_confidence * 100)|round|int
+                                    if ticket.classification_confidence
+                                    else
+                                    (ticket.confidence * 100)|round|int
+                                }}% ML confidence
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="routing-box">
+
+                        <span class="field-label">
+                            Assigned Department
+                        </span>
+
+                        <div class="routing-main-val text-green">
+                            {{ ticket.routing }}
+                        </div>
+
+                        <div
+                            class="routing-sub-val"
+                            style="margin-top: 4px;"
+                        >
+                            Tier:
+                            {% if ticket.priority == 'Critical' or ticket.escalated %}
+                                Tier 3 / Engineering
+                            {% elif ticket.priority == 'High' %}
+                                Tier 2 / Specialist
+                            {% else %}
+                                Tier 1 / Operations
+                            {% endif %}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- REMEDIATION -->
+            <div class="card">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+
+                        <div class="card-title-icon icon-green">
+                            <i class="fa-solid fa-screwdriver-wrench"></i>
+                        </div>
+
+                        Diagnostic Remediation
+
+                    </div>
+
+                    <span
+                        class="badge
+                            {% if ticket.remediation and ticket.remediation.success %}
+                                badge-success
+                            {% else %}
+                                badge-warning
+                            {% endif %}"
+                    >
+                        {% if ticket.remediation and ticket.remediation.success %}
+                            Supported Action Succeeded
+                        {% else %}
+                            No Successful Automated Fix Recorded
+                        {% endif %}
+                    </span>
+
+                </div>
+
+
+                <div class="remediation-details-box">
+
+                    {% if ticket.remediation and ticket.remediation is mapping %}
+
+                        <div class="remed-row">
+
+                            <strong>Diagnostic Check:</strong>
+
+                            <span>
+                                {{
+                                    ticket.remediation.diagnosis
+                                    or 'Diagnostic inspection completed'
+                                }}
+                            </span>
+
+                        </div>
+
+
+                        <div class="remed-row">
+
+                            <strong>Action:</strong>
+
+                            <span>
+                                {{
+                                    ticket.remediation.action
+                                    or 'System diagnostic test'
+                                }}
+                            </span>
+
+                        </div>
+
+
+                        <div class="remed-msg">
+
+                            {{
+                                ticket.remediation.message
+                                or 'No automated remediation performed.'
+                            }}
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="remed-msg">
+
+                            {{
+                                ticket.remediation
+                                or 'No automated remediation performed.'
+                            }}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+
+            <!-- RECURRING PATTERN -->
+            <div class="card">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+
+                        <div class="card-title-icon icon-blue">
+                            <i class="fa-solid fa-repeat"></i>
+                        </div>
+
+                        Pattern &amp; Trend Analysis
+
+                    </div>
+
+                    {% if ticket.recurring %}
+
+                        <span class="badge badge-info">
+                            Recurring Cluster
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge badge-success">
+                            Unique Incident
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <p
+                    style="
+                        font-size: 13px;
+                        color: var(--muted-light);
+                        margin: 0;
+                        line-height: 1.5;
+                    "
+                >
+
+                    {% if ticket.recurring %}
+
+                        Resolve IQ identified related support incidents
+                        sharing similar keywords and symptoms across recent activity.
+
+                    {% else %}
+
+                        No recurring issue pattern detected.
+                        This incident appears isolated.
+
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT COLUMN -->
+        <div class="detail-col">
+
+            <!-- KNOWLEDGE / RAG RETRIEVAL -->
+            <div class="card">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <div class="card-title">
+
+                            <div class="card-title-icon icon-purple">
+                                <i class="fa-solid fa-database"></i>
+                            </div>
+
+                            Historical Precedents &amp; Similar Tickets
+
+                        </div>
+
+                        <p class="section-subtitle">
+                            Historical ticket matches and their recorded resolutions from the support database.
+                        </p>
+
+                    </div>
+
+                    <span class="badge badge-purple">
+                        {{ ticket.rag_results|length if ticket.rag_results else 0 }}
+                        Precedents
+                    </span>
+
+                </div>
+
+
+                {% if ticket.rag_results %}
+
+                    <div class="rag-cards-list">
+
+                        {% for item in ticket.rag_results %}
+
+                            <div class="rag-card">
+
+                                <div class="rag-card-top">
+
+                                    <span class="rag-id">
+                                        <i class="fa-solid fa-ticket"></i>
+                                        {{ item.ticket_id or 'Case Record' }}
+                                    </span>
+
+                                    <span class="rag-sim">
+                                        <i class="fa-solid fa-code-compare"></i>
+                                        Similarity:
+                                        {{ (item.similarity * 100)|round|int }}%
+                                    </span>
+
+                                </div>
+
+
+                                <div class="rag-text">
+                                    {{ item.text }}
+                                </div>
+
+
+                                {% if item.resolution %}
+
+                                    <div
+                                        class="rag-res"
+                                        style="
+                                            margin-top: 6px;
+                                            font-size: 12px;
+                                            color: #a78bfa;
+                                        "
+                                    >
+                                        <strong>Recorded Resolution:</strong>
+                                        {{ item.resolution }}
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <p
+                        style="
+                            font-size: 13px;
+                            color: var(--muted);
+                            font-style: italic;
+                            padding: 12px 0;
+                        "
+                    >
+                        No prior historical tickets matched the keyword threshold.
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- ESCALATION RULE REASONING -->
+            <div class="card">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+
+                        <div class="card-title-icon icon-red">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+
+                        Escalation Safety Boundary
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="escalation-alert-box
+                        {% if ticket.escalated or ticket.handling_decision == 'Escalated' %}
+                            alert-escalated
+                        {% else %}
+                            alert-resolved
+                        {% endif %}"
+                >
+
+                    {% if ticket.escalated or ticket.handling_decision == 'Escalated' %}
+
+                        <div class="alert-icon">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+
+                        <div>
+
+                            <h4
+                                style="
+                                    margin: 0;
+                                    font-size: 14px;
+                                    color: #ff8a98;
+                                "
+                            >
+                                Human Specialist Intervention Flagged
+                            </h4>
+
+                            <p
+                                style="
+                                    margin: 4px 0 0;
+                                    font-size: 12.5px;
+                                    color: #ffccd2;
+                                "
+                            >
+                                This ticket is designated for specialist review based on current safety or confidence rules.
+                            </p>
+
+                        </div>
+
+                    {% else %}
+
+                        <div class="alert-icon">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+
+                        <div>
+
+                            <h4
+                                style="
+                                    margin: 0;
+                                    font-size: 14px;
+                                    color: #35e0a1;
+                                "
+                            >
+                                Standard Operational Path
+                            </h4>
+
+                            <p
+                                style="
+                                    margin: 4px 0 0;
+                                    font-size: 12.5px;
+                                    color: #bbf7d0;
+                                "
+                            >
+                                The ticket is within the current safety boundary, with AI-assisted guidance available for operational handling.
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const ticketId = "{{ ticket.ticket_id }}";
+
+    const copyResolutionBtn =
+        document.getElementById("copyResolutionBtn");
+
+    const resolutionText =
+        document.getElementById("resolutionText");
+
+    const copyBtnText =
+        document.getElementById("copyBtnText");
+
+
+    // =========================================================
+    // COPY RESOLUTION STEPS
+    // =========================================================
+
+    if (copyResolutionBtn && resolutionText) {
+
+        copyResolutionBtn.addEventListener("click", () => {
+
+            const text =
+                resolutionText.innerText.trim();
+
+            navigator.clipboard.writeText(text)
+                .then(() => {
+
+                    if (copyBtnText) {
+                        copyBtnText.textContent =
+                            "Copied to Clipboard!";
+                    }
+
+                    if (window.showToast) {
+                        window.showToast(
+                            "Action steps copied to clipboard",
+                            "success"
+                        );
+                    }
+
+                    setTimeout(() => {
+
+                        if (copyBtnText) {
+                            copyBtnText.textContent =
+                                "Copy Action Steps";
+                        }
+
+                    }, 2000);
+
+                })
+                .catch(err => {
+
+                    console.error("Copy failed:", err);
+
+                });
+
+        });
+
+    }
+
+
+    // =========================================================
+    // SAVE MANUAL DECISION CHANGES
+    // =========================================================
+
+    const saveDecisionBtn =
+        document.getElementById("saveDecisionBtn");
+
+    const detailStatusSelect =
+        document.getElementById("detailStatusSelect");
+
+    const detailHandlingSelect =
+        document.getElementById("detailHandlingSelect");
+
+    const detailOwnershipSelect =
+        document.getElementById("detailOwnershipSelect");
+
+    const headerStatusBadge =
+        document.getElementById("headerStatusBadge");
+
+    const headerHandlingBadge =
+        document.getElementById("headerHandlingBadge");
+
+
+    if (saveDecisionBtn) {
+
+        saveDecisionBtn.addEventListener("click", async () => {
+
+            const newStatus =
+                detailStatusSelect.value;
+
+            const newHandling =
+                detailHandlingSelect.value;
+
+            const newOwnership =
+                detailOwnershipSelect.value;
+
+
+            const origBtnHtml =
+                saveDecisionBtn.innerHTML;
+
+            saveDecisionBtn.disabled = true;
+
+            saveDecisionBtn.innerHTML =
+                `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
+
+
+            try {
+
+                // -------------------------------------------------
+                // UPDATE STATUS
+                // -------------------------------------------------
+
+                const statusRes =
+                    await fetch(
+                        `/api/tickets/${encodeURIComponent(ticketId)}/status`,
+                        {
+                            method: "PATCH",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                status: newStatus
+                            })
+                        }
+                    );
+
+
+                const statusData =
+                    await statusRes.json();
+
+
+                if (!statusRes.ok || !statusData.success) {
+
+                    throw new Error(
+                        statusData.error ||
+                        "Status update failed"
+                    );
+
+                }
+
+
+                // -------------------------------------------------
+                // UPDATE HANDLING & OWNERSHIP
+                // -------------------------------------------------
+
+                const decisionRes =
+                    await fetch(
+                        `/api/tickets/${encodeURIComponent(ticketId)}/decision`,
+                        {
+                            method: "PATCH",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                handling_decision: newHandling,
+                                resolution_ownership: newOwnership
+                            })
+                        }
+                    );
+
+
+                const decisionData =
+                    await decisionRes.json();
+
+
+                if (!decisionRes.ok || !decisionData.success) {
+
+                    throw new Error(
+                        decisionData.error ||
+                        "Decision update failed"
+                    );
+
+                }
+
+
+                // -------------------------------------------------
+                // UPDATE STATUS BADGE
+                // -------------------------------------------------
+
+                if (headerStatusBadge) {
+
+                    headerStatusBadge.textContent =
+                        `Status: ${newStatus}`;
+
+                    headerStatusBadge.className =
+                        `badge ${
+                            newStatus === "Resolved" ||
+                            newStatus === "Closed"
+                                ? "badge-success"
+                                : newStatus === "In Progress"
+                                    ? "badge-info"
+                                    : "badge-warning"
+                        }`;
+
+                }
+
+
+                // -------------------------------------------------
+                // UPDATE HANDLING BADGE
+                // -------------------------------------------------
+
+                if (headerHandlingBadge) {
+
+                    headerHandlingBadge.textContent =
+                        newHandling === "Escalated"
+                            ? "Escalated to Specialist"
+                            : "Standard Handling";
+
+                    headerHandlingBadge.className =
+                        `badge ${
+                            newHandling === "Escalated"
+                                ? "badge-danger"
+                                : "badge-success"
+                        }`;
+
+                }
+
+
+                if (window.showToast) {
+
+                    window.showToast(
+                        "Ticket triage & status saved successfully!",
+                        "success"
+                    );
+
+                }
+
+            } catch (err) {
+
+                console.error("Save error:", err);
+
+                if (window.showToast) {
+
+                    window.showToast(
+                        "Failed to save changes: " + err.message,
+                        "error"
+                    );
+
+                }
+
+            } finally {
+
+                saveDecisionBtn.disabled = false;
+
+                saveDecisionBtn.innerHTML =
+                    origBtnHtml;
+
+            }
+
+        });
+
+    }
+
+
+    // =========================================================
+    // DYNAMIC HANDLING CAPTION
+    // =========================================================
+
+    const handlingCaption =
+        document.getElementById("handlingCaptionText");
+
+
+    if (detailHandlingSelect && handlingCaption) {
+
+        detailHandlingSelect.addEventListener(
+            "change",
+            () => {
+
+                if (
+                    detailHandlingSelect.value ===
+                    "Escalated"
+                ) {
+
+                    handlingCaption.innerHTML =
+                        `<span class="text-warning">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            Specialist / human review required
+                        </span>`;
+
+                } else {
+
+                    handlingCaption.innerHTML =
+                        `<span class="text-success">
+                            <i class="fa-solid fa-circle-check"></i>
+                            Standard support handling
+                        </span>`;
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // =========================================================
+    // DELETE TICKET
+    // =========================================================
+
+    const deleteDetailBtn =
+        document.getElementById(
+            "deleteDetailTicketBtn"
+        );
+
+
+    if (deleteDetailBtn) {
+
+        deleteDetailBtn.addEventListener(
+            "click",
+            () => {
+
+                if (!window.showConfirmModal) {
+                    return;
+                }
+
+
+                window.showConfirmModal({
+
+                    title: "Delete Ticket?",
+
+                    message:
+                        `Are you sure you want to permanently delete ticket ${ticketId}? This action cannot be undone.`,
+
+                    confirmText: "Delete Ticket",
+
+                    confirmClass: "btn-danger",
+
+
+                    onConfirm: async () => {
+
+                        try {
+
+                            const res =
+                                await fetch(
+                                    `/api/tickets/${encodeURIComponent(ticketId)}`,
+                                    {
+                                        method: "DELETE"
+                                    }
+                                );
+
+
+                            const data =
+                                await res.json();
+
+
+                            if (
+                                !res.ok ||
+                                !data.success
+                            ) {
+
+                                throw new Error(
+                                    data.error ||
+                                    "Delete failed"
+                                );
+
+                            }
+
+
+                            if (window.showToast) {
+
+                                window.showToast(
+                                    `Ticket ${ticketId} deleted successfully`,
+                                    "success"
+                                );
+
+                            }
+
+
+                            setTimeout(() => {
+
+                                window.location.href =
+                                    "/ticket-queue";
+
+                            }, 400);
+
+
+                        } catch (err) {
+
+                            if (window.showToast) {
+
+                                window.showToast(
+                                    "Delete error: " +
+                                    err.message,
+                                    "error"
+                                );
+
+                            }
+
+                        }
+
+                    }
+
+                });
+
+            }
+        );
+
+    }
+
+});
+</script>
+{% endblock %}

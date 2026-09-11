@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Resolve IQ AI Support Workspace{% endblock %}
+
+{% block page_header %}
+<div class="page-title">Dashboard</div>
+<div class="page-heading">Resolve IQ Dashboard</div>
+{% endblock %}
+
+{% block content %}
+<div class="cinematic-dashboard">
+
+    <!-- =========================================================
+         1. GRAND HERO CANVAS (LOGIN SCREEN DESIGN LANGUAGE)
+         ========================================================= -->
+    <section class="grand-hero-canvas">
+        <div class="hero-split-content">
+
+            <!-- LEFT: WELCOME & PRODUCT VISION -->
+            <div class="hero-text-block">
+                <div class="hero-eyebrow">
+                    <span class="eyebrow-accent">RESOLVE IQ</span>
+                    <span class="eyebrow-sep">•</span>
+                    <span>AI SUPPORT WORKSPACE</span>
+                </div>
+
+                <h1 class="grand-greeting">Hello, {{ username.split(' ')[0] if username else 'User' }}! 👋</h1>
+
+                <p class="grand-tagline">
+                    Your intelligent support workspace for faster, smarter ticket resolution.
+                </p>
+
+                <p class="grand-desc">
+                    AI-driven incident classification, contextual knowledge retrieval, and intelligent routing built for modern enterprise support operations.
+                </p>
+
+                <div class="grand-actions">
+                    <a href="/submit-ticket" class="btn btn-cinematic-primary">
+                        <i class="fa-solid fa-plus"></i> Submit New Ticket
+                    </a>
+                    <a href="/ticket-queue" class="btn btn-cinematic-secondary">
+                        <i class="fa-solid fa-list-check"></i> View Ticket Queue
+                    </a>
+                </div>
+            </div>
+
+            <!-- RIGHT: GRAND TICKET WORKLOAD COMPOSITION -->
+            <div class="hero-workload-visual">
+                <div class="workload-visual-card">
+                    <div class="workload-visual-header">
+                        <div class="workload-live-indicator">
+                            <span class="status-dot-pulse"></span>
+                            <span>LIVE WORKLOAD HEALTH</span>
+                        </div>
+                        <span class="badge badge-purple" style="font-size: 11px;">Active Queue</span>
+                    </div>
+
+                    <div class="workload-radial-center">
+                        <div class="radial-ring-wrapper">
+                            <svg class="radial-progress-svg" viewBox="0 0 120 120">
+                                <circle class="radial-bg" cx="60" cy="60" r="50"></circle>
+                                {% set res_c = analytics.resolved_count if analytics.resolved_count is defined else (analytics.auto_resolved_count if analytics.auto_resolved_count is defined else 0) %}
+                                {% set tot_c = analytics.total_tickets if analytics.total_tickets > 0 else 1 %}
+                                {% set stroke_val = 314 - (314 * (res_c / tot_c)) %}
+                                <circle class="radial-bar" cx="60" cy="60" r="50" style="stroke-dashoffset: {{ stroke_val }};"></circle>
+                            </svg>
+                            <div class="radial-core-text">
+                                <div class="radial-big-number">{{ analytics.total_tickets }}</div>
+                                <div class="radial-sub-label">TICKETS</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="workload-hero-grid">
+                        <a href="/ticket-queue?status=Open" class="hero-metric-pill" title="View Open Tickets">
+                            <span class="pill-dot blue"></span>
+                            <span class="pill-title">Open</span>
+                            <strong class="pill-val">{{ analytics.workload.open if (analytics.workload and analytics.workload.open is defined) else analytics.open_tickets_count }}</strong>
+                        </a>
+                        <a href="/ticket-queue?status=In%20Progress" class="hero-metric-pill" title="View In-Progress Tickets">
+                            <span class="pill-dot cyan"></span>
+                            <span class="pill-title">In Progress</span>
+                            <strong class="pill-val">{{ analytics.workload.in_progress if (analytics.workload and analytics.workload.in_progress is defined) else 0 }}</strong>
+                        </a>
+                        <a href="/ticket-queue?status=Resolved" class="hero-metric-pill" title="View Resolved Tickets">
+                            <span class="pill-dot green"></span>
+                            <span class="pill-title">Resolved</span>
+                            <strong class="pill-val">{{ analytics.workload.resolved if (analytics.workload and analytics.workload.resolved is defined) else analytics.resolved_count }}</strong>
+                        </a>
+                        <a href="/ticket-queue?handling=Escalated" class="hero-metric-pill" title="View Tickets Needing Attention">
+                            <span class="pill-dot amber"></span>
+                            <span class="pill-title">Attention</span>
+                            <strong class="pill-val">{{ attention_count }}</strong>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- =========================================================
+         2. GRAND STATISTICS STRIP (4 SUBSTANTIAL METRICS)
+         ========================================================= -->
+    <section class="grand-stats-strip">
+
+        <div class="grand-stat-item">
+            <div class="stat-number">{{ analytics.total_tickets }}</div>
+            <div class="stat-label">Total Tickets</div>
+            <div class="stat-sub">All support requests</div>
+        </div>
+
+        <div class="grand-stat-divider"></div>
+
+        <div class="grand-stat-item">
+            <div class="stat-number text-info">{{ analytics.open_tickets_count }}</div>
+            <div class="stat-label">Open</div>
+            <div class="stat-sub">Awaiting resolution</div>
+        </div>
+
+        <div class="grand-stat-divider"></div>
+
+        <div class="grand-stat-item">
+            <div class="stat-number text-success">{{ analytics.resolved_count if analytics.resolved_count is defined else analytics.auto_resolved_count }}</div>
+            <div class="stat-label">Resolved</div>
+            <div class="stat-sub">Successfully closed</div>
+        </div>
+
+        <div class="grand-stat-divider"></div>
+
+        <div class="grand-stat-item">
+            <div class="stat-number text-warning">{{ attention_count }}</div>
+            <div class="stat-label">Needs Attention</div>
+            <div class="stat-sub">Human review required</div>
+        </div>
+
+    </section>
+
+    <!-- =========================================================
+         2.5 MY TICKET WORKLOAD (SEGMENTED INTERACTIVE BAR)
+         ========================================================= -->
+    <section class="grand-workload-strip card">
+        <div class="workload-strip-header">
+            <div>
+                <div class="card-title" style="font-size: 16px;">
+                    <div class="card-title-icon icon-cyan"><i class="fa-solid fa-chart-column"></i></div>
+                    My Ticket Workload Distribution
+                </div>
+                <p class="section-subtitle">Real-time status breakdown of all support incidents across your enterprise workspace.</p>
+            </div>
+            <div class="workload-summary-pills">
+                <span class="badge badge-info"><i class="fa-solid fa-layer-group"></i> {{ analytics.total_tickets }} Incidents Managed</span>
+            </div>
+        </div>
+
+        {% set total_calc = analytics.total_tickets if analytics.total_tickets > 0 else 1 %}
+        {% set wl_open_cnt = analytics.workload.open if (analytics.workload and analytics.workload.open is defined) else analytics.open_tickets_count %}
+        {% set wl_prog_cnt = analytics.workload.in_progress if (analytics.workload and analytics.workload.in_progress is defined) else 0 %}
+        {% set wl_res_cnt = analytics.workload.resolved if (analytics.workload and analytics.workload.resolved is defined) else analytics.resolved_count %}
+
+        {% set pct_open = ((wl_open_cnt / total_calc) * 100)|round|int %}
+        {% set pct_prog = ((wl_prog_cnt / total_calc) * 100)|round|int %}
+        {% set pct_res = ((wl_res_cnt / total_calc) * 100)|round|int %}
+        {% set pct_att = ((attention_count / total_calc) * 100)|round|int %}
+
+        <!-- Clickable segmented progress bar -->
+        <div class="workload-segmented-bar" title="Click any segment to filter ticket queue">
+            <a href="/ticket-queue?status=Open" class="workload-segment seg-open" style="width: {{ pct_open if pct_open > 0 else (25 if analytics.total_tickets == 0 else 3) }}%;" title="Open Tickets: {{ wl_open_cnt }} ({{ pct_open }}%)">
+                {% if pct_open >= 10 %}<span>{{ pct_open }}% Open</span>{% endif %}
+            </a>
+            <a href="/ticket-queue?status=In%20Progress" class="workload-segment seg-progress" style="width: {{ pct_prog if pct_prog > 0 else (25 if analytics.total_tickets == 0 else 3) }}%;" title="In Progress: {{ wl_prog_cnt }} ({{ pct_prog }}%)">
+                {% if pct_prog >= 10 %}<span>{{ pct_prog }}% In Progress</span>{% endif %}
+            </a>
+            <a href="/ticket-queue?status=Resolved" class="workload-segment seg-resolved" style="width: {{ pct_res if pct_res > 0 else (25 if analytics.total_tickets == 0 else 3) }}%;" title="Resolved: {{ wl_res_cnt }} ({{ pct_res }}%)">
+                {% if pct_res >= 10 %}<span>{{ pct_res }}% Resolved</span>{% endif %}
+            </a>
+            <a href="/ticket-queue?handling=Escalated" class="workload-segment seg-attention" style="width: {{ pct_att if pct_att > 0 else (25 if analytics.total_tickets == 0 else 3) }}%;" title="Needs Attention: {{ attention_count }} ({{ pct_att }}%)">
+                {% if pct_att >= 10 %}<span>{{ pct_att }}% Attention</span>{% endif %}
+            </a>
+        </div>
+
+        <!-- Legend / Breakdown items (Clickable) -->
+        <div class="workload-legend-grid">
+            <a href="/ticket-queue?status=Open" class="workload-legend-item" title="View Open Tickets">
+                <span class="legend-indicator dot-blue"></span>
+                <div class="legend-meta">
+                    <span class="legend-name">Open Tickets</span>
+                    <strong class="legend-count">{{ wl_open_cnt }}</strong>
+                </div>
+                <span class="legend-pct">{{ pct_open }}%</span>
+            </a>
+
+            <a href="/ticket-queue?status=In%20Progress" class="workload-legend-item" title="View In Progress Tickets">
+                <span class="legend-indicator dot-purple"></span>
+                <div class="legend-meta">
+                    <span class="legend-name">In Progress</span>
+                    <strong class="legend-count">{{ wl_prog_cnt }}</strong>
+                </div>
+                <span class="legend-pct">{{ pct_prog }}%</span>
+            </a>
+
+            <a href="/ticket-queue?status=Resolved" class="workload-legend-item" title="View Resolved Tickets">
+                <span class="legend-indicator dot-green"></span>
+                <div class="legend-meta">
+                    <span class="legend-name">Resolved</span>
+                    <strong class="legend-count">{{ wl_res_cnt }}</strong>
+                </div>
+                <span class="legend-pct">{{ pct_res }}%</span>
+            </a>
+
+            <a href="/ticket-queue?handling=Escalated" class="workload-legend-item" title="View Tickets Needing Attention">
+                <span class="legend-indicator dot-amber"></span>
+                <div class="legend-meta">
+                    <span class="legend-name">Needs Attention</span>
+                    <strong class="legend-count">{{ attention_count }}</strong>
+                </div>
+                <span class="legend-pct">{{ pct_att }}%</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- =========================================================
+         3. TICKETS NEEDING ATTENTION & RECENT TICKETS (SPLIT)
+         ========================================================= -->
+    <div class="dashboard-activity-split">
+
+        <!-- LEFT: TICKETS NEED YOUR ATTENTION -->
+        <div class="grand-activity-card attention-card">
+            <div class="activity-card-header">
+                <div class="activity-header-left">
+                    <div class="activity-icon warning"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div>
+                        <h3 class="activity-title">Tickets Need Your Attention</h3>
+                        <p class="activity-sub">Incidents flagged for human intervention, escalation, or review.</p>
+                    </div>
+                </div>
+                <a href="/ticket-queue?handling=Escalated" class="activity-link">
+                    View All <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="attention-list">
+                {% if attention_tickets %}
+                    {% for t in attention_tickets %}
+                    <div class="attention-item" onclick="window.location.href='/ticket/{{ t.ticket_id }}';">
+                        <div class="attention-item-main">
+                            <div class="attention-tid">{{ t.ticket_id }}</div>
+                            <div class="attention-subject">{{ t.subject }}</div>
+                        </div>
+                        <div class="attention-item-meta">
+                            <span class="badge {% if t.priority == 'Critical' %}badge-danger{% elif t.priority == 'High' %}badge-warning{% else %}badge-info{% endif %}">
+                                {{ t.priority }}
+                            </span>
+                            <span class="reason-tag">
+                                {% if t.handling_decision == 'Escalated' or t.escalated %}
+                                    <i class="fa-solid fa-user-shield"></i> Specialist Escalated
+                                {% elif t.resolution_ownership == 'Human Fix Required' %}
+                                    <i class="fa-solid fa-user-gear"></i> Human Fix
+                                {% elif t.confidence is not none and t.confidence < 0.60 %}
+                                    <i class="fa-solid fa-chart-line"></i> Low Confidence ({{ (t.confidence * 100)|round|int }}%)
+                                {% else %}
+                                    <i class="fa-solid fa-clock"></i> Open Case
+                                {% endif %}
+                            </span>
+                            <a href="/ticket/{{ t.ticket_id }}" class="btn-review-sm" onclick="event.stopPropagation();">
+                                Review <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="grand-empty-note">
+                        <i class="fa-solid fa-circle-check text-success"></i>
+                        <span>All support incidents are operating smoothly within automated safe boundaries.</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- RIGHT: RECENT TICKETS -->
+        <div class="grand-activity-card recent-card">
+            <div class="activity-card-header">
+                <div class="activity-header-left">
+                    <div class="activity-icon info"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div>
+                        <h3 class="activity-title">Recent Tickets</h3>
+                        <p class="activity-sub">Latest support requests processed by the platform.</p>
+                    </div>
+                </div>
+                <a href="/ticket-queue" class="activity-link">
+                    Full Queue <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="recent-list">
+                {% if recent_tickets %}
+                    {% for t in recent_tickets %}
+                    <div class="recent-item" onclick="window.location.href='/ticket/{{ t.ticket_id }}';">
+                        <div class="recent-item-info">
+                            <span class="recent-tid">{{ t.ticket_id }}</span>
+                            <span class="recent-subject">{{ t.subject }}</span>
+                        </div>
+                        <div class="recent-item-badges">
+                            <span class="badge badge-purple" style="font-size: 11px;">
+                                {{ t.category }}
+                            </span>
+                            <span class="badge {% if t.priority == 'Critical' %}badge-danger{% elif t.priority == 'High' %}badge-warning{% elif t.priority == 'Low' %}badge-success{% else %}badge-info{% endif %}">
+                                {{ t.priority }}
+                            </span>
+                            <span class="badge {% if t.status in ('Resolved', 'Closed') %}badge-success{% elif t.status == 'In Progress' %}badge-info{% elif t.status == 'Escalated' or t.escalated %}badge-danger{% else %}badge-warning{% endif %}">
+                                {{ t.status }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="grand-empty-note">
+                        <i class="fa-solid fa-inbox text-muted"></i>
+                        <span>No tickets recorded yet.</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- =========================================================
+         4. ELEGANT REAL AI INSIGHT BANNER
+         ========================================================= -->
+    <section class="grand-ai-insight-banner">
+        <div class="insight-pill">
+            <i class="fa-solid fa-sparkles"></i> AI Insight
+        </div>
+        <div class="insight-content">
+            <p class="insight-text">
+                <strong>{{ top_cat_name }}</strong> incidents currently form the primary workload.
+                <strong>{{ attention_count }} ticket{% if attention_count != 1 %}s{% endif %}</strong> currently require active human oversight,
+                with an average AI decision confidence of <strong>{{ avg_conf_pct }}%</strong> across all processed tickets.
+            </p>
+        </div>
+    </section>
+
+    <!-- =========================================================
+         5. HOW RESOLVE IQ WORKS (MINIMAL 4 STEPS)
+         ========================================================= -->
+    <section class="how-it-works-strip">
+        <div class="how-header">
+            <span class="how-title">HOW RESOLVE IQ WORKS</span>
+            <a href="/ai-overview" class="how-explore-link">
+                Explore AI Intelligence <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="how-steps-grid">
+            <div class="how-step">
+                <div class="step-num">01</div>
+                <div class="step-name">Understand</div>
+                <div class="step-desc">Extracts diagnostic context from subject and attachments.</div>
+            </div>
+
+            <div class="how-step-arrow"><i class="fa-solid fa-angle-right"></i></div>
+
+            <div class="how-step">
+                <div class="step-num">02</div>
+                <div class="step-name">Classify</div>
+                <div class="step-desc">Categorizes incident intent with trained probabilistic modeling.</div>
+            </div>
+
+            <div class="how-step-arrow"><i class="fa-solid fa-angle-right"></i></div>
+
+            <div class="how-step">
+                <div class="step-num">03</div>
+                <div class="step-name">Route</div>
+                <div class="step-desc">Directs the ticket to the appropriate support or operations department.</div>
+            </div>
+
+            <div class="how-step-arrow"><i class="fa-solid fa-angle-right"></i></div>
+
+            <div class="how-step">
+                <div class="step-num">04</div>
+                <div class="step-name">Resolve</div>
+                <div class="step-desc">Surfaces relevant historical resolutions and prepares safe remediation guidance.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================================
+         6. QUICK ACTIONS (MINIMAL, NON-DESTRUCTIVE)
+         ========================================================= -->
+    <section class="grand-quick-bar">
+        <span class="quick-bar-label">Quick Actions:</span>
+        <div class="quick-bar-buttons">
+            <a href="/submit-ticket" class="quick-pill-btn primary">
+                <i class="fa-solid fa-plus"></i> Submit Ticket
+            </a>
+            <a href="/ticket-queue" class="quick-pill-btn">
+                <i class="fa-solid fa-inbox"></i> Ticket Queue
+            </a>
+            <a href="/analytics" class="quick-pill-btn">
+                <i class="fa-solid fa-chart-pie"></i> Analytics
+            </a>
+            <button type="button" class="quick-pill-btn accent" id="quickAskAiBtn">
+                <i class="fa-solid fa-comments"></i> Ask Resolve IQ
+            </button>
+        </div>
+    </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const quickAsk = document.getElementById("quickAskAiBtn");
+    if (quickAsk) {
+        quickAsk.addEventListener("click", () => {
+            const drawer = document.getElementById("chatDrawer");
+            if (drawer) {
+                drawer.style.display = "flex";
+                const input = document.getElementById("chatInput");
+                if (input) input.focus();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

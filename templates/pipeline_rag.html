@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Knowledge Retrieval (RAG) — Resolve IQ{% endblock %}
+
+{% block page_header %}
+<div class="page-title">AI Decision Intelligence</div>
+<div class="page-heading">Knowledge Retrieval (RAG)</div>
+{% endblock %}
+
+{% block content %}
+<div class="pipeline-subpage-wrapper">
+
+    <!-- OVERVIEW CARD -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    Knowledge Retrieval
+                </div>
+
+                <p class="section-subtitle">
+                    Resolve IQ searches historical support tickets to find similar
+                    issues and use their recorded resolutions as supporting context.
+                </p>
+            </div>
+
+            <span class="badge badge-info">
+                <i class="fa-solid fa-layer-group"></i>
+                Lexical Overlap Retrieval
+            </span>
+        </div>
+
+
+        <div class="info-block-grid">
+
+            <div class="info-stat-card">
+                <span class="info-label">Retrieval Scope</span>
+
+                <div class="info-val">Top-3 Candidates</div>
+
+                <div class="info-sub">
+                    Ranked by keyword overlap score
+                </div>
+            </div>
+
+
+            <div class="info-stat-card">
+                <span class="info-label">Knowledge Base Source</span>
+
+                <div class="info-val">Historical Ticket Corpus</div>
+
+                <div class="info-sub">
+                    Indexed ticket descriptions &amp; recorded resolutions
+                </div>
+            </div>
+
+
+            <div class="info-stat-card">
+                <span class="info-label">Matching Algorithm</span>
+
+                <div class="info-val">Keyword Overlap</div>
+
+                <div class="info-sub">
+                    Retrieves similar historical support cases
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- RETRIEVAL SHOWCASE / EXAMPLES -->
+    <div class="card" style="margin-top: 20px;">
+
+        <div class="card-header">
+
+            <div>
+
+                <div class="card-title">
+
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                    </div>
+
+                    Sample RAG Matches from Analyzed Tickets
+
+                </div>
+
+                <p class="section-subtitle">
+                    Examples showing how the retrieval engine connects analyzed
+                    tickets with similar historical support cases.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {% if recent_rag_examples %}
+
+            <div class="rag-showcase-list">
+
+                {% for ex in recent_rag_examples %}
+
+                <div class="rag-showcase-item">
+
+                    <div class="showcase-header">
+
+                        <div>
+
+                            <span class="badge badge-purple">
+                                Originating Ticket: {{ ex.parent_ticket_id }}
+                            </span>
+
+                            <span
+                                style="
+                                    font-size: 13px;
+                                    color: var(--text);
+                                    margin-left: 8px;
+                                    font-weight: 600;
+                                "
+                            >
+                                {{ ex.parent_subject }}
+                            </span>
+
+                        </div>
+
+
+                        <a
+                            href="/ticket/{{ ex.parent_ticket_id }}"
+                            class="btn btn-secondary btn-sm"
+                        >
+                            Inspect Ticket
+                        </a>
+
+                    </div>
+
+
+                    <div class="showcase-matches">
+
+                        {% for match in ex.rag_results %}
+
+                        <div class="rag-card">
+
+                            <div class="rag-card-top">
+
+                                <span class="rag-id">
+                                    <i class="fa-solid fa-file-invoice"></i>
+
+                                    {{ match.ticket_id or 'Historical Case' }}
+                                </span>
+
+
+                                <span class="rag-sim">
+                                    <i class="fa-solid fa-code-compare"></i>
+
+                                    Similarity Overlap:
+                                    {{ (match.similarity * 100)|round|int }}%
+                                </span>
+
+                            </div>
+
+
+                            <div class="rag-text">
+                                {{ match.text }}
+                            </div>
+
+
+                            {% if match.resolution %}
+
+                            <div class="rag-res">
+
+                                <strong>Recorded Historical Resolution:</strong>
+                                {{ match.resolution }}
+
+                            </div>
+
+                            {% endif %}
+
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    <i class="fa-solid fa-database"></i>
+                </div>
+
+                <h3>No retrieval examples yet</h3>
+
+                <p>
+                    Submit tickets to generate and view historical
+                    similarity matches here.
+                </p>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+{% endblock %}

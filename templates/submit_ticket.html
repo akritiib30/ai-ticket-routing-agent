@@ -1,0 +1,2097 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Ticket — Resolve IQ{% endblock %}
+
+{% block page_header %}
+<div class="page-title">Intelligent Ticket Submission</div>
+<div class="page-heading">Analyze &amp; Route a Support Ticket</div>
+{% endblock %}
+
+{% block content %}
+<div class="submit-page-wrapper">
+
+    <div class="card submit-card">
+
+        <div class="card-header">
+            <div>
+                <div class="card-title">
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    Ticket Submission &amp; AI Analysis
+                </div>
+
+                <p class="section-subtitle">
+                    Enter the support incident details below. Resolve IQ will classify the category,
+                    route to the appropriate team, retrieve historical solutions, assess confidence,
+                    and evaluate safe remediation options.
+                </p>
+            </div>
+
+            <span class="badge badge-info">
+                <i class="fa-solid fa-bolt"></i> AI READY
+            </span>
+        </div>
+
+
+        <!-- QUICK TICKET QUERIES -->
+        <div class="quick-queries-section">
+
+            <div class="quick-queries-header">
+                <span class="quick-queries-title">
+                    <i class="fa-solid fa-bolt-lightning"></i>
+                    Quick Ticket Queries
+                </span>
+
+                <span class="quick-queries-hint">
+                    Click any common incident to autofill test diagnostic details
+                </span>
+            </div>
+
+            <div class="quick-queries-grid">
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="VPN is not connecting"
+                        data-desc="Unable to connect to company VPN client. Connection times out during authentication handshake on home network."
+                        data-cat="Network & Connectivity"
+                        data-pri="High">
+                    <i class="fa-solid fa-shield-virus query-chip-icon"></i>
+                    VPN not connecting
+                </button>
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="Wi-Fi is not working"
+                        data-desc="Office Wi-Fi network drops repeatedly and prompts for certificate validation error."
+                        data-cat="Network & Connectivity"
+                        data-pri="High">
+                    <i class="fa-solid fa-wifi query-chip-icon"></i>
+                    Wi-Fi not working
+                </button>
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="Please reset my password"
+                        data-desc="User forgot workstation and portal password after returning from vacation. Self-service reset link expired."
+                        data-cat="Account & Access"
+                        data-pri="Medium">
+                    <i class="fa-solid fa-key query-chip-icon"></i>
+                    Reset password
+                </button>
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="My account is locked"
+                        data-desc="Active Directory account locked after multiple failed attempts on mobile client."
+                        data-cat="Account & Access"
+                        data-pri="High">
+                    <i class="fa-solid fa-user-lock query-chip-icon"></i>
+                    Account locked
+                </button>
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="Cannot login to system"
+                        data-desc="Single sign-on provider returns HTTP 500 error when attempting to authenticate into enterprise portal."
+                        data-cat="Account & Access"
+                        data-pri="High">
+                    <i class="fa-solid fa-right-to-bracket query-chip-icon"></i>
+                    Cannot login
+                </button>
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="I cannot access my company email"
+                        data-desc="Outlook client shows Disconnected status and webmail access returns mailbox not found."
+                        data-cat="Email & Collaboration"
+                        data-pri="High">
+                    <i class="fa-solid fa-envelope query-chip-icon"></i>
+                    Company email
+                </button>
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="Application crashing on launch"
+                        data-desc="Enterprise ERP client crashes immediately with fatal runtime exception 0xC0000005."
+                        data-cat="Software & Applications"
+                        data-pri="High">
+                    <i class="fa-solid fa-bug query-chip-icon"></i>
+                    App crashing
+                </button>
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="Server unavailable 503 error"
+                        data-desc="Production backend server returns 503 Service Unavailable on all API routes."
+                        data-cat="Infrastructure & Servers"
+                        data-pri="Critical">
+                    <i class="fa-solid fa-server query-chip-icon"></i>
+                    Server 503 error
+                </button>
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="Database connection timeout"
+                        data-desc="PostgreSQL cluster reports connection pool exhaustion and client queries exceed 30s timeout."
+                        data-cat="Database & Storage"
+                        data-pri="Critical">
+                    <i class="fa-solid fa-database query-chip-icon"></i>
+                    Database timeout
+                </button>
+
+                <!-- FIXED CATEGORY -->
+                <button type="button"
+                        class="query-chip"
+                        data-subject="Shared drive permission denied"
+                        data-desc="User cannot open department shared folder. System indicates Access Denied error 5."
+                        data-cat="Storage & Files"
+                        data-pri="Medium">
+                    <i class="fa-solid fa-folder-minus query-chip-icon"></i>
+                    Shared drive denied
+                </button>
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="Printer offline / cannot print"
+                        data-desc="4th floor network printer shows offline in print queue and will not accept spooling jobs."
+                        data-cat="Hardware & Peripherals"
+                        data-pri="Low">
+                    <i class="fa-solid fa-print query-chip-icon"></i>
+                    Printer offline
+                </button>
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="Outlook sync failure"
+                        data-desc="Microsoft Outlook stopped synchronizing calendar and contacts since yesterday evening."
+                        data-cat="Email & Collaboration"
+                        data-pri="Medium">
+                    <i class="fa-solid fa-arrows-rotate query-chip-icon"></i>
+                    Outlook sync
+                </button>
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="Two-factor authentication failed"
+                        data-desc="Authenticator app push notifications are not arriving and backup codes fail validation."
+                        data-cat="Account & Access"
+                        data-pri="High">
+                    <i class="fa-solid fa-mobile-screen-button query-chip-icon"></i>
+                    2FA failed
+                </button>
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="Slow system performance"
+                        data-desc="Workstation CPU spikes to 100% usage continuously causing extreme lag across all applications."
+                        data-cat="Hardware & Peripherals"
+                        data-pri="Medium">
+                    <i class="fa-solid fa-gauge-simple-high query-chip-icon"></i>
+                    Slow performance
+                </button>
+
+                <button type="button"
+                        class="query-chip"
+                        data-subject="Software license expired"
+                        data-desc="AutoCAD license expired warning prevents opening engineering project drawings."
+                        data-cat="Software & Applications"
+                        data-pri="High">
+                    <i class="fa-solid fa-file-contract query-chip-icon"></i>
+                    License expired
+                </button>
+
+            </div>
+        </div>
+
+
+        <!-- TICKET FORM -->
+        <form id="ticketForm" enctype="multipart/form-data">
+
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label for="username">
+                        <i class="fa-solid fa-user"></i> Requester
+                    </label>
+
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        value="{{ username }}"
+                        placeholder="Enter requester name"
+                        required
+                    >
+                </div>
+
+
+                <div class="form-group">
+                    <label for="priority">
+                        <i class="fa-solid fa-flag"></i> Priority
+                    </label>
+
+                    <select id="priority" name="priority">
+                        <option value="Auto-detect priority">
+                            Auto-detect priority
+                        </option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+
+
+                <!-- FIXED CATEGORY TAXONOMY -->
+                <div class="form-group">
+                    <label for="category">
+                        <i class="fa-solid fa-folder-tree"></i> Category
+                    </label>
+
+                    <select id="category" name="category">
+                        <option value="">AI will classify</option>
+                        <option value="Network & Connectivity">
+                            Network &amp; Connectivity
+                        </option>
+                        <option value="Account & Access">
+                            Account &amp; Access
+                        </option>
+                        <option value="Email & Collaboration">
+                            Email &amp; Collaboration
+                        </option>
+                        <option value="Software & Applications">
+                            Software &amp; Applications
+                        </option>
+                        <option value="Infrastructure & Servers">
+                            Infrastructure &amp; Servers
+                        </option>
+                        <option value="Database & Storage">
+                            Database &amp; Storage
+                        </option>
+                        <option value="Hardware & Peripherals">
+                            Hardware &amp; Peripherals
+                        </option>
+                        <option value="Storage & Files">
+                            Storage &amp; Files
+                        </option>
+                        <option value="Security Operations">
+                            Security Operations
+                        </option>
+                    </select>
+                </div>
+
+
+                <div class="form-group">
+                    <label for="subject">
+                        <i class="fa-solid fa-heading"></i> Subject
+                    </label>
+
+                    <input
+                        type="text"
+                        id="subject"
+                        name="subject"
+                        placeholder="e.g. VPN connection failing with error 800"
+                        required
+                    >
+                </div>
+
+
+                <div class="form-group full">
+
+                    <label for="description">
+                        <i class="fa-solid fa-align-left"></i>
+                        Ticket Description
+                    </label>
+
+                    <textarea
+                        id="description"
+                        name="description"
+                        rows="5"
+                        placeholder="Describe the issue in detail (e.g., VPN fails to connect on home network, timeout occurred while verifying credentials)..."
+                        required
+                    ></textarea>
+
+
+                    <div
+                        id="suggestedMetaBanner"
+                        class="suggested-meta-banner"
+                        style="display:none;"
+                    >
+                        <i class="fa-solid fa-wand-magic-sparkles text-cyan"></i>
+
+                        <span>
+                            AI Suggestion:
+                            Detected Category
+                            <strong
+                                id="sugCatText"
+                                style="color:var(--cyan);"
+                            >
+                                Network &amp; Connectivity
+                            </strong>
+
+                            • Suggested Priority
+
+                            <strong
+                                id="sugPriText"
+                                style="color:var(--yellow);"
+                            >
+                                High
+                            </strong>
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <!-- ATTACHMENT -->
+                <div class="form-group full">
+
+                    <label>
+                        <i class="fa-solid fa-paperclip"></i>
+                        Attachment (Optional)
+                    </label>
+
+                    <div
+                        class="upload-area"
+                        id="uploadArea"
+                    >
+                        <div class="upload-icon">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                        </div>
+
+                        <div class="upload-title">
+                            Upload supporting file or diagnostic log
+                        </div>
+
+                        <div class="upload-text">
+                            Drag and drop or click to upload
+                            (PDF, CSV, TXT, PNG, JPG)
+                        </div>
+
+                        <input
+                            type="file"
+                            id="attachment"
+                            name="attachment"
+                            accept=".pdf,.csv,.txt,.png,.jpg,.jpeg"
+                        >
+                    </div>
+
+
+                    <div
+                        class="file-preview-card"
+                        id="filePreview"
+                        style="display:none;margin-top:12px;"
+                    >
+
+                        <div class="file-preview-left">
+
+                            <div class="file-preview-icon">
+                                <i class="fa-solid fa-file-lines"></i>
+                            </div>
+
+                            <div>
+                                <div
+                                    class="file-preview-name"
+                                    id="fileName"
+                                >
+                                    attachment.pdf
+                                </div>
+
+                                <div class="file-preview-meta">
+
+                                    <span
+                                        class="file-size-badge"
+                                        id="fileSize"
+                                    >
+                                        120 KB
+                                    </span>
+
+                                    <span
+                                        class="file-type-badge"
+                                        id="fileType"
+                                    >
+                                        PDF
+                                    </span>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="btn-remove-file"
+                            id="removeFileBtn"
+                            title="Remove File"
+                        >
+                            <i class="fa-solid fa-trash-can"></i>
+                            Remove
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- FORM ACTIONS -->
+            <div
+                class="form-actions"
+                style="margin-top:24px;"
+            >
+
+                <button
+                    type="reset"
+                    class="btn btn-secondary"
+                    id="clearBtn"
+                >
+                    <i class="fa-solid fa-rotate-left"></i>
+                    Clear Form
+                </button>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary btn-lg"
+                    id="analyzeBtn"
+                >
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>Analyze Ticket</span>
+                </button>
+
+            </div>
+
+        </form>
+
+
+        <div id="resultContainer"></div>
+
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const form =
+        document.getElementById("ticketForm");
+
+    const attachmentInput =
+        document.getElementById("attachment");
+
+    const uploadArea =
+        document.getElementById("uploadArea");
+
+    const filePreview =
+        document.getElementById("filePreview");
+
+    const fileName =
+        document.getElementById("fileName");
+
+    const fileSize =
+        document.getElementById("fileSize");
+
+    const fileType =
+        document.getElementById("fileType");
+
+    const removeFileBtn =
+        document.getElementById("removeFileBtn");
+
+    const analyzeBtn =
+        document.getElementById("analyzeBtn");
+
+    const resultContainer =
+        document.getElementById("resultContainer");
+
+    const clearBtn =
+        document.getElementById("clearBtn");
+
+    const subjectInput =
+        document.getElementById("subject");
+
+    const descInput =
+        document.getElementById("description");
+
+    const catSelect =
+        document.getElementById("category");
+
+    const priSelect =
+        document.getElementById("priority");
+
+    const sugBanner =
+        document.getElementById("suggestedMetaBanner");
+
+    const sugCatText =
+        document.getElementById("sugCatText");
+
+    const sugPriText =
+        document.getElementById("sugPriText");
+
+
+    // -------------------------------------------------------
+    // ESCAPE HTML
+    // -------------------------------------------------------
+
+    function escapeHtml(value) {
+
+        if (
+            value === null ||
+            value === undefined
+        ) {
+            return "";
+        }
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+
+    // -------------------------------------------------------
+    // FILE SIZE
+    // -------------------------------------------------------
+
+    function formatBytes(bytes) {
+
+        if (!bytes) {
+            return "0 B";
+        }
+
+        const units =
+            ["B", "KB", "MB", "GB"];
+
+        const index =
+            Math.floor(
+                Math.log(bytes) /
+                Math.log(1024)
+            );
+
+        return (
+            parseFloat(
+                (
+                    bytes /
+                    Math.pow(1024, index)
+                ).toFixed(1)
+            ) +
+            " " +
+            units[index]
+        );
+    }
+
+
+    // -------------------------------------------------------
+    // FILE DISPLAY
+    // -------------------------------------------------------
+
+    function updateFileDisplay(file) {
+
+        if (!file) {
+
+            filePreview.style.display =
+                "none";
+
+            return;
+        }
+
+        fileName.textContent =
+            file.name;
+
+        fileSize.textContent =
+            formatBytes(file.size);
+
+        const parts =
+            file.name.split(".");
+
+        const extension =
+            parts.length > 1
+                ? parts.pop().toUpperCase()
+                : "FILE";
+
+        fileType.textContent =
+            extension;
+
+        filePreview.style.display =
+            "flex";
+    }
+
+
+    if (attachmentInput) {
+
+        attachmentInput.addEventListener(
+            "change",
+            () => {
+
+                if (
+                    attachmentInput.files &&
+                    attachmentInput.files.length
+                ) {
+                    updateFileDisplay(
+                        attachmentInput.files[0]
+                    );
+                } else {
+                    updateFileDisplay(null);
+                }
+            }
+        );
+    }
+
+
+    if (removeFileBtn) {
+
+        removeFileBtn.addEventListener(
+            "click",
+            () => {
+
+                attachmentInput.value = "";
+
+                updateFileDisplay(null);
+            }
+        );
+    }
+
+
+    // -------------------------------------------------------
+    // DRAG & DROP
+    // -------------------------------------------------------
+
+    if (uploadArea) {
+
+        ["dragenter", "dragover"]
+            .forEach(eventName => {
+
+                uploadArea.addEventListener(
+                    eventName,
+                    event => {
+
+                        event.preventDefault();
+
+                        uploadArea.classList.add(
+                            "dragover"
+                        );
+                    }
+                );
+            });
+
+
+        ["dragleave", "drop"]
+            .forEach(eventName => {
+
+                uploadArea.addEventListener(
+                    eventName,
+                    event => {
+
+                        event.preventDefault();
+
+                        uploadArea.classList.remove(
+                            "dragover"
+                        );
+                    }
+                );
+            });
+
+
+        uploadArea.addEventListener(
+            "drop",
+            event => {
+
+                const files =
+                    event.dataTransfer.files;
+
+                if (
+                    files &&
+                    files.length
+                ) {
+
+                    try {
+                        attachmentInput.files =
+                            files;
+                    } catch (error) {
+                        console.warn(
+                            "Unable to assign dropped file.",
+                            error
+                        );
+                    }
+
+                    updateFileDisplay(
+                        files[0]
+                    );
+                }
+            }
+        );
+    }
+
+
+    // -------------------------------------------------------
+    // QUICK QUERY CHIPS
+    // -------------------------------------------------------
+
+    const queryChips =
+        document.querySelectorAll(
+            ".query-chip"
+        );
+
+
+    queryChips.forEach(chip => {
+
+        chip.addEventListener(
+            "click",
+            () => {
+
+                queryChips.forEach(
+                    item =>
+                        item.classList.remove(
+                            "active"
+                        )
+                );
+
+                chip.classList.add("active");
+
+
+                const subject =
+                    chip.getAttribute(
+                        "data-subject"
+                    ) || "";
+
+                const description =
+                    chip.getAttribute(
+                        "data-desc"
+                    ) || "";
+
+                const category =
+                    chip.getAttribute(
+                        "data-cat"
+                    ) || "";
+
+                const priority =
+                    chip.getAttribute(
+                        "data-pri"
+                    ) || "";
+
+
+                if (subjectInput) {
+                    subjectInput.value =
+                        subject;
+                }
+
+                if (descInput) {
+                    descInput.value =
+                        description;
+                }
+
+
+                if (
+                    catSelect &&
+                    category
+                ) {
+
+                    Array.from(
+                        catSelect.options
+                    ).forEach(option => {
+
+                        option.selected =
+                            option.value.toLowerCase() ===
+                            category.toLowerCase();
+                    });
+                }
+
+
+                if (
+                    priSelect &&
+                    priority
+                ) {
+
+                    Array.from(
+                        priSelect.options
+                    ).forEach(option => {
+
+                        option.selected =
+                            option.value.toLowerCase() ===
+                            priority.toLowerCase();
+                    });
+                }
+
+
+                if (
+                    sugBanner &&
+                    sugCatText &&
+                    sugPriText
+                ) {
+
+                    sugCatText.textContent =
+                        category ||
+                        "Auto-detected";
+
+                    sugPriText.textContent =
+                        priority ||
+                        "Auto-detected";
+
+                    sugBanner.style.display =
+                        "flex";
+                }
+            }
+        );
+    });
+
+
+    // -------------------------------------------------------
+    // URL AUTO-CHIP
+    // -------------------------------------------------------
+
+    try {
+
+        const urlParams =
+            new URLSearchParams(
+                window.location.search
+            );
+
+        const autoChip =
+            urlParams.get("auto_chip");
+
+
+        if (autoChip) {
+
+            for (const chip of queryChips) {
+
+                const subject =
+                    (
+                        chip.getAttribute(
+                            "data-subject"
+                        ) || ""
+                    ).toLowerCase();
+
+                if (
+                    subject.includes(
+                        autoChip.toLowerCase()
+                    )
+                ) {
+
+                    chip.click();
+                    break;
+                }
+            }
+
+
+            if (
+                urlParams.get(
+                    "auto_submit"
+                ) === "1" &&
+                form
+            ) {
+
+                setTimeout(
+                    () => {
+
+                        form.dispatchEvent(
+                            new Event(
+                                "submit",
+                                {
+                                    cancelable: true
+                                }
+                            )
+                        );
+
+                    },
+                    300
+                );
+            }
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "Auto-chip error:",
+            error
+        );
+    }
+
+
+    // -------------------------------------------------------
+    // CLEAR FORM
+    // -------------------------------------------------------
+
+    if (clearBtn) {
+
+        clearBtn.addEventListener(
+            "click",
+            () => {
+
+                setTimeout(
+                    () => {
+
+                        queryChips.forEach(
+                            chip =>
+                                chip.classList.remove(
+                                    "active"
+                                )
+                        );
+
+                        updateFileDisplay(
+                            null
+                        );
+
+                        if (sugBanner) {
+                            sugBanner.style.display =
+                                "none";
+                        }
+
+                        if (resultContainer) {
+                            resultContainer.innerHTML =
+                                "";
+                        }
+
+                    },
+                    0
+                );
+            }
+        );
+    }
+
+
+    // -------------------------------------------------------
+    // SUBMIT / AI ANALYSIS
+    // -------------------------------------------------------
+
+    if (form) {
+
+        form.addEventListener(
+            "submit",
+            async event => {
+
+                event.preventDefault();
+
+
+                const originalButton =
+                    analyzeBtn.innerHTML;
+
+                analyzeBtn.disabled =
+                    true;
+
+                analyzeBtn.innerHTML = `
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Analyzing ticket...</span>
+                `;
+
+
+                resultContainer.innerHTML = `
+                    <div
+                        class="analysis-progress-card fade-in"
+                        style="
+                            margin-top:24px;
+                            padding:26px;
+                            border-radius:16px;
+                            background:rgba(13,17,32,.9);
+                            border:1px solid rgba(124,92,255,.3);
+                        "
+                    >
+
+                        <div
+                            style="
+                                display:flex;
+                                align-items:center;
+                                gap:14px;
+                                margin-bottom:20px;
+                            "
+                        >
+
+                            <div
+                                class="loading-spinner"
+                                style="
+                                    width:28px;
+                                    height:28px;
+                                    border-width:3px;
+                                "
+                            ></div>
+
+                            <div>
+
+                                <h4
+                                    style="
+                                        margin:0;
+                                        font-size:16px;
+                                        color:var(--text);
+                                    "
+                                >
+                                    Analyzing Support Ticket...
+                                </h4>
+
+                                <p
+                                    style="
+                                        margin:2px 0 0;
+                                        font-size:12px;
+                                        color:var(--muted);
+                                    "
+                                >
+                                    Resolve IQ is running the intelligent decision pipeline
+                                </p>
+
+                            </div>
+                        </div>
+
+
+                        <div
+                            class="progress-steps-list"
+                            id="progressStepsList"
+                            style="
+                                display:flex;
+                                flex-direction:column;
+                                gap:12px;
+                                font-size:13px;
+                            "
+                        >
+
+                            <div
+                                class="p-step active"
+                                id="pStep1"
+                            >
+                                <i class="fa-solid fa-circle-notch fa-spin text-purple"></i>
+                                Classifying issue category with trained model...
+                            </div>
+
+                            <div
+                                class="p-step text-muted"
+                                id="pStep2"
+                            >
+                                <i class="fa-solid fa-clock"></i>
+                                Routing to designated support team...
+                            </div>
+
+                            <div
+                                class="p-step text-muted"
+                                id="pStep3"
+                            >
+                                <i class="fa-solid fa-clock"></i>
+                                Retrieving similar historical resolutions...
+                            </div>
+
+                            <div
+                                class="p-step text-muted"
+                                id="pStep4"
+                            >
+                                <i class="fa-solid fa-clock"></i>
+                                Assessing decision confidence and safety boundaries...
+                            </div>
+
+                            <div
+                                class="p-step text-muted"
+                                id="pStep5"
+                            >
+                                <i class="fa-solid fa-clock"></i>
+                                Preparing resolution and ticket state...
+                            </div>
+
+                        </div>
+                    </div>
+                `;
+
+
+                resultContainer.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest"
+                });
+
+
+                const timers = [
+
+                    setTimeout(() => {
+
+                        const step1 =
+                            document.getElementById(
+                                "pStep1"
+                            );
+
+                        const step2 =
+                            document.getElementById(
+                                "pStep2"
+                            );
+
+                        if (step1) {
+                            step1.innerHTML =
+                                `<i class="fa-solid fa-circle-check text-success"></i>
+                                 Category classified`;
+                        }
+
+                        if (step2) {
+
+                            step2.className =
+                                "p-step active";
+
+                            step2.innerHTML =
+                                `<i class="fa-solid fa-circle-notch fa-spin text-cyan"></i>
+                                 Routing to designated support team...`;
+                        }
+
+                    }, 400),
+
+
+                    setTimeout(() => {
+
+                        const step2 =
+                            document.getElementById(
+                                "pStep2"
+                            );
+
+                        const step3 =
+                            document.getElementById(
+                                "pStep3"
+                            );
+
+                        if (step2) {
+                            step2.innerHTML =
+                                `<i class="fa-solid fa-circle-check text-success"></i>
+                                 Team routed`;
+                        }
+
+                        if (step3) {
+
+                            step3.className =
+                                "p-step active";
+
+                            step3.innerHTML =
+                                `<i class="fa-solid fa-circle-notch fa-spin text-green"></i>
+                                 Retrieving similar historical resolutions...`;
+                        }
+
+                    }, 850),
+
+
+                    setTimeout(() => {
+
+                        const step3 =
+                            document.getElementById(
+                                "pStep3"
+                            );
+
+                        const step4 =
+                            document.getElementById(
+                                "pStep4"
+                            );
+
+                        if (step3) {
+                            step3.innerHTML =
+                                `<i class="fa-solid fa-circle-check text-success"></i>
+                                 Historical knowledge matched`;
+                        }
+
+                        if (step4) {
+
+                            step4.className =
+                                "p-step active";
+
+                            step4.innerHTML =
+                                `<i class="fa-solid fa-circle-notch fa-spin text-purple"></i>
+                                 Assessing decision confidence and safety boundaries...`;
+                        }
+
+                    }, 1300),
+
+
+                    setTimeout(() => {
+
+                        const step4 =
+                            document.getElementById(
+                                "pStep4"
+                            );
+
+                        const step5 =
+                            document.getElementById(
+                                "pStep5"
+                            );
+
+                        if (step4) {
+                            step4.innerHTML =
+                                `<i class="fa-solid fa-circle-check text-success"></i>
+                                 Confidence scored`;
+                        }
+
+                        if (step5) {
+
+                            step5.className =
+                                "p-step active";
+
+                            step5.innerHTML =
+                                `<i class="fa-solid fa-circle-notch fa-spin text-cyan"></i>
+                                 Preparing resolution and ticket state...`;
+                        }
+
+                    }, 1750)
+
+                ];
+
+
+                try {
+
+                    const formData =
+                        new FormData(form);
+
+
+                    const response =
+                        await fetch(
+                            "/api/analyze",
+                            {
+                                method: "POST",
+                                body: formData
+                            }
+                        );
+
+
+                    const data =
+                        await response.json();
+
+
+                    timers.forEach(
+                        clearTimeout
+                    );
+
+
+                    if (
+                        !response.ok ||
+                        !data.success
+                    ) {
+                        throw new Error(
+                            data.error ||
+                            "Analysis failed."
+                        );
+                    }
+
+
+                    const ticketId =
+                        data.ticket_id;
+
+                    const category =
+                        data.classification?.category ||
+                        data.ticket?.category ||
+                        "General";
+
+                    const subcategory =
+                        data.classification?.subcategory ||
+                        data.ticket?.subcategory ||
+                        "";
+
+                    const issueType =
+                        data.classification?.issue_type ||
+                        data.ticket?.issue_type ||
+                        "";
+
+                    const department =
+                        data.routing?.department ||
+                        "General IT Support";
+
+                    const confidence =
+                        Math.round(
+                            (
+                                data.confidence?.score ||
+                                0
+                            ) * 100
+                        );
+
+                    const confidenceTier =
+                        (
+                            data.confidence?.tier ||
+                            "medium"
+                        ).toUpperCase();
+
+                    const status =
+                        data.status ||
+                        "Open";
+
+                    let handling =
+                        data.handling_decision ||
+                        (
+                            data.escalated
+                                ? "Escalated"
+                                : "Accepted"
+                        );
+
+                    let ownership =
+                        data.resolution_ownership ||
+                        (
+                            data.escalated
+                                ? "Human Fix Required"
+                                : "AI Resolution Available"
+                        );
+
+
+                    resultContainer.innerHTML = `
+
+                        <div
+                            class="analysis-success-card fade-in"
+                            style="
+                                margin-top:24px;
+                                padding:28px;
+                                border-radius:18px;
+                                background:linear-gradient(
+                                    145deg,
+                                    rgba(17,22,40,.95),
+                                    rgba(13,17,32,.95)
+                                );
+                                border:1px solid rgba(53,224,161,.35);
+                                box-shadow:0 15px 40px rgba(0,0,0,.4);
+                            "
+                        >
+
+                            <div
+                                style="
+                                    display:flex;
+                                    align-items:flex-start;
+                                    justify-content:space-between;
+                                    flex-wrap:wrap;
+                                    gap:16px;
+                                    margin-bottom:20px;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        display:flex;
+                                        align-items:center;
+                                        gap:14px;
+                                    "
+                                >
+
+                                    <div
+                                        style="
+                                            width:48px;
+                                            height:48px;
+                                            border-radius:14px;
+                                            background:rgba(53,224,161,.15);
+                                            border:1px solid rgba(53,224,161,.3);
+                                            display:flex;
+                                            align-items:center;
+                                            justify-content:center;
+                                            color:#35e0a1;
+                                            font-size:22px;
+                                        "
+                                    >
+                                        <i class="fa-solid fa-circle-check"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <h3
+                                            style="
+                                                margin:0;
+                                                font-size:20px;
+                                                color:var(--text);
+                                            "
+                                        >
+                                            Ticket Analyzed Successfully
+                                        </h3>
+
+                                        <div
+                                            style="
+                                                font-family:monospace;
+                                                font-size:14px;
+                                                color:var(--cyan);
+                                                margin-top:4px;
+                                            "
+                                        >
+                                            Ticket ID:
+                                            ${escapeHtml(ticketId)}
+                                        </div>
+
+                                    </div>
+                                </div>
+
+
+                                <div
+                                    style="
+                                        display:flex;
+                                        gap:8px;
+                                    "
+                                >
+
+                                    <span
+                                        class="badge ${
+                                            status === "Resolved" ||
+                                            status === "Closed"
+                                                ? "badge-success"
+                                                : "badge-info"
+                                        }"
+                                        style="
+                                            font-size:12px;
+                                            padding:6px 14px;
+                                        "
+                                    >
+                                        Status:
+                                        ${escapeHtml(status)}
+                                    </span>
+
+                                    <span
+                                        id="cardHandlingBadge"
+                                        class="badge ${
+                                            handling === "Escalated"
+                                                ? "badge-danger"
+                                                : "badge-success"
+                                        }"
+                                        style="
+                                            font-size:12px;
+                                            padding:6px 14px;
+                                        "
+                                    >
+                                        ${escapeHtml(handling)}
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- ANALYSIS SUMMARY -->
+
+                            <div
+                                style="
+                                    display:grid;
+                                    grid-template-columns:
+                                        repeat(
+                                            auto-fit,
+                                            minmax(180px,1fr)
+                                        );
+                                    gap:14px;
+                                    background:rgba(255,255,255,.02);
+                                    padding:16px;
+                                    border-radius:12px;
+                                    margin-bottom:20px;
+                                    border:1px solid var(--border);
+                                "
+                            >
+
+                                <div>
+
+                                    <span
+                                        style="
+                                            font-size:11px;
+                                            color:var(--muted);
+                                            text-transform:uppercase;
+                                        "
+                                    >
+                                        Classified Category
+                                    </span>
+
+                                    <div
+                                        style="
+                                            font-weight:700;
+                                            font-size:14px;
+                                            color:var(--text);
+                                            margin-top:2px;
+                                        "
+                                    >
+                                        ${escapeHtml(category)}
+                                    </div>
+
+                                    ${
+                                        subcategory
+                                            ? `
+                                                <div
+                                                    style="
+                                                        font-size:11.5px;
+                                                        color:var(--cyan);
+                                                        margin-top:2px;
+                                                    "
+                                                >
+                                                    Sub:
+                                                    ${escapeHtml(subcategory)}
+                                                </div>
+                                              `
+                                            : ""
+                                    }
+
+                                    ${
+                                        issueType
+                                            ? `
+                                                <div
+                                                    style="
+                                                        font-size:11px;
+                                                        color:#a78bfa;
+                                                    "
+                                                >
+                                                    Type:
+                                                    ${escapeHtml(issueType)}
+                                                </div>
+                                              `
+                                            : ""
+                                    }
+
+                                </div>
+
+
+                                <div>
+
+                                    <span
+                                        style="
+                                            font-size:11px;
+                                            color:var(--muted);
+                                            text-transform:uppercase;
+                                        "
+                                    >
+                                        Routed Department
+                                    </span>
+
+                                    <div
+                                        style="
+                                            font-weight:700;
+                                            font-size:14px;
+                                            color:var(--green);
+                                            margin-top:2px;
+                                        "
+                                    >
+                                        ${escapeHtml(department)}
+                                    </div>
+
+                                </div>
+
+
+                                <div>
+
+                                    <span
+                                        style="
+                                            font-size:11px;
+                                            color:var(--muted);
+                                            text-transform:uppercase;
+                                        "
+                                    >
+                                        AI Decision Confidence
+                                    </span>
+
+                                    <div
+                                        style="
+                                            font-weight:700;
+                                            font-size:14px;
+                                            color:var(--cyan);
+                                            margin-top:2px;
+                                        "
+                                    >
+                                        ${confidence}%
+                                        (${confidenceTier})
+                                    </div>
+
+                                </div>
+
+
+                                <div>
+
+                                    <span
+                                        style="
+                                            font-size:11px;
+                                            color:var(--muted);
+                                            text-transform:uppercase;
+                                        "
+                                    >
+                                        Resolution Ownership
+                                    </span>
+
+                                    <div
+                                        id="cardOwnershipVal"
+                                        style="
+                                            font-weight:700;
+                                            font-size:14px;
+                                            color:var(--yellow);
+                                            margin-top:2px;
+                                        "
+                                    >
+                                        ${escapeHtml(ownership)}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- DECISION CONTROLS -->
+
+                            <div
+                                style="
+                                    background:rgba(10,14,28,.6);
+                                    padding:16px;
+                                    border-radius:12px;
+                                    border:1px solid rgba(124,92,255,.2);
+                                    margin-bottom:22px;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        display:grid;
+                                        grid-template-columns:
+                                            repeat(
+                                                auto-fit,
+                                                minmax(240px,1fr)
+                                            );
+                                        gap:16px;
+                                    "
+                                >
+
+                                    <div>
+
+                                        <label
+                                            style="
+                                                font-size:12px;
+                                                font-weight:600;
+                                                color:#cbd5e1;
+                                                display:block;
+                                                margin-bottom:6px;
+                                            "
+                                        >
+                                            <i class="fa-solid fa-hand-holding-hand"></i>
+                                            Handling Decision
+                                        </label>
+
+                                        <div class="decision-toggle-box">
+
+                                            <button
+                                                type="button"
+                                                class="btn-decision-toggle btn-accept ${
+                                                    handling === "Accepted"
+                                                        ? "active"
+                                                        : ""
+                                                }"
+                                                id="postAcceptBtn"
+                                            >
+                                                <i class="fa-solid fa-check"></i>
+                                                Accept Ticket
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                class="btn-decision-toggle btn-escalate ${
+                                                    handling === "Escalated"
+                                                        ? "active"
+                                                        : ""
+                                                }"
+                                                id="postEscalateBtn"
+                                            >
+                                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                                Escalate
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <label
+                                            style="
+                                                font-size:12px;
+                                                font-weight:600;
+                                                color:#cbd5e1;
+                                                display:block;
+                                                margin-bottom:6px;
+                                            "
+                                        >
+                                            <i class="fa-solid fa-user-gear"></i>
+                                            Resolution Ownership
+                                        </label>
+
+                                        <div class="decision-toggle-box">
+
+                                            <button
+                                                type="button"
+                                                class="btn-decision-toggle btn-ai ${
+                                                    ownership === "AI Resolution Available"
+                                                        ? "active"
+                                                        : ""
+                                                }"
+                                                id="postAiBtn"
+                                            >
+                                                <i class="fa-solid fa-robot"></i>
+                                                AI Resolution
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                class="btn-decision-toggle btn-human ${
+                                                    ownership === "Human Fix Required"
+                                                        ? "active"
+                                                        : ""
+                                                }"
+                                                id="postHumanBtn"
+                                            >
+                                                <i class="fa-solid fa-user-gear"></i>
+                                                Human Fix
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div
+                                    id="postDecisionFeedback"
+                                    style="
+                                        font-size:11.5px;
+                                        color:#35e0a1;
+                                        margin-top:10px;
+                                        display:none;
+                                    "
+                                >
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    Decision updated and persisted to database.
+                                </div>
+
+                            </div>
+
+
+                            <!-- ACTION BUTTONS -->
+
+                            <div
+                                style="
+                                    display:flex;
+                                    gap:12px;
+                                    flex-wrap:wrap;
+                                "
+                            >
+
+                                <a
+                                    href="/ticket/${encodeURIComponent(ticketId)}"
+                                    class="btn btn-primary btn-lg"
+                                >
+                                    <i class="fa-solid fa-eye"></i>
+                                    View Ticket Details
+                                </a>
+
+                                <a
+                                    href="/ticket-queue"
+                                    class="btn btn-secondary btn-lg"
+                                >
+                                    <i class="fa-solid fa-list-check"></i>
+                                    Go to Ticket Queue
+                                </a>
+
+                                <a
+                                    href="/api/export/pdf?ticket_id=${encodeURIComponent(ticketId)}"
+                                    class="btn btn-export btn-lg"
+                                >
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                    Download PDF
+                                </a>
+
+                            </div>
+
+                        </div>
+                    `;
+
+
+                    // ------------------------------------------------
+                    // DECISION UPDATE
+                    // ------------------------------------------------
+
+                    async function updateDecision(
+                        handlingValue,
+                        ownershipValue
+                    ) {
+
+                        const feedback =
+                            document.getElementById(
+                                "postDecisionFeedback"
+                            );
+
+                        const payload = {};
+
+                        if (handlingValue) {
+                            payload.handling_decision =
+                                handlingValue;
+                        }
+
+                        if (ownershipValue) {
+                            payload.resolution_ownership =
+                                ownershipValue;
+                        }
+
+
+                        try {
+
+                            const patchResponse =
+                                await fetch(
+                                    `/api/tickets/${encodeURIComponent(ticketId)}/decision`,
+                                    {
+                                        method: "PATCH",
+
+                                        headers: {
+                                            "Content-Type":
+                                                "application/json"
+                                        },
+
+                                        body:
+                                            JSON.stringify(
+                                                payload
+                                            )
+                                    }
+                                );
+
+
+                            if (!patchResponse.ok) {
+
+                                throw new Error(
+                                    "Decision update failed."
+                                );
+                            }
+
+
+                            if (feedback) {
+
+                                feedback.style.display =
+                                    "block";
+
+                                setTimeout(
+                                    () => {
+                                        feedback.style.display =
+                                            "none";
+                                    },
+                                    3000
+                                );
+                            }
+
+
+                            if (handlingValue) {
+
+                                handling =
+                                    handlingValue;
+
+                                const badge =
+                                    document.getElementById(
+                                        "cardHandlingBadge"
+                                    );
+
+                                if (badge) {
+
+                                    badge.textContent =
+                                        handlingValue;
+
+                                    badge.className =
+                                        `badge ${
+                                            handlingValue ===
+                                            "Escalated"
+                                                ? "badge-danger"
+                                                : "badge-success"
+                                        }`;
+                                }
+
+
+                                const acceptButton =
+                                    document.getElementById(
+                                        "postAcceptBtn"
+                                    );
+
+                                const escalateButton =
+                                    document.getElementById(
+                                        "postEscalateBtn"
+                                    );
+
+                                if (
+                                    acceptButton &&
+                                    escalateButton
+                                ) {
+
+                                    acceptButton.classList.toggle(
+                                        "active",
+                                        handlingValue ===
+                                            "Accepted"
+                                    );
+
+                                    escalateButton.classList.toggle(
+                                        "active",
+                                        handlingValue ===
+                                            "Escalated"
+                                    );
+                                }
+                            }
+
+
+                            if (ownershipValue) {
+
+                                ownership =
+                                    ownershipValue;
+
+                                const ownershipValueElement =
+                                    document.getElementById(
+                                        "cardOwnershipVal"
+                                    );
+
+                                if (
+                                    ownershipValueElement
+                                ) {
+
+                                    ownershipValueElement.textContent =
+                                        ownershipValue;
+                                }
+
+
+                                const aiButton =
+                                    document.getElementById(
+                                        "postAiBtn"
+                                    );
+
+                                const humanButton =
+                                    document.getElementById(
+                                        "postHumanBtn"
+                                    );
+
+                                if (
+                                    aiButton &&
+                                    humanButton
+                                ) {
+
+                                    aiButton.classList.toggle(
+                                        "active",
+                                        ownershipValue ===
+                                            "AI Resolution Available"
+                                    );
+
+                                    humanButton.classList.toggle(
+                                        "active",
+                                        ownershipValue ===
+                                            "Human Fix Required"
+                                    );
+                                }
+                            }
+
+                        } catch (error) {
+
+                            console.error(
+                                "Decision update failed:",
+                                error
+                            );
+
+                            if (
+                                typeof window.showToast ===
+                                "function"
+                            ) {
+                                window.showToast(
+                                    "Unable to update the ticket decision.",
+                                    "error"
+                                );
+                            }
+                        }
+                    }
+
+
+                    document
+                        .getElementById(
+                            "postAcceptBtn"
+                        )
+                        ?.addEventListener(
+                            "click",
+                            () =>
+                                updateDecision(
+                                    "Accepted",
+                                    null
+                                )
+                        );
+
+
+                    document
+                        .getElementById(
+                            "postEscalateBtn"
+                        )
+                        ?.addEventListener(
+                            "click",
+                            () =>
+                                updateDecision(
+                                    "Escalated",
+                                    null
+                                )
+                        );
+
+
+                    document
+                        .getElementById(
+                            "postAiBtn"
+                        )
+                        ?.addEventListener(
+                            "click",
+                            () =>
+                                updateDecision(
+                                    null,
+                                    "AI Resolution Available"
+                                )
+                        );
+
+
+                    document
+                        .getElementById(
+                            "postHumanBtn"
+                        )
+                        ?.addEventListener(
+                            "click",
+                            () =>
+                                updateDecision(
+                                    null,
+                                    "Human Fix Required"
+                                )
+                        );
+
+
+                } catch (error) {
+
+                    timers.forEach(
+                        clearTimeout
+                    );
+
+                    console.error(
+                        "Submission error:",
+                        error
+                    );
+
+
+                    resultContainer.innerHTML = `
+                        <div
+                            style="
+                                margin-top:20px;
+                                padding:18px;
+                                border-radius:12px;
+                                background:rgba(255,101,119,.12);
+                                border:1px solid rgba(255,101,119,.3);
+                            "
+                        >
+
+                            <strong
+                                style="color:#ff8a98;"
+                            >
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                Analysis Error
+                            </strong>
+
+                            <p
+                                style="
+                                    margin:6px 0 0;
+                                    font-size:13px;
+                                    color:#ffccd2;
+                                "
+                            >
+                                ${escapeHtml(
+                                    error.message
+                                )}
+                            </p>
+
+                        </div>
+                    `;
+                }
+
+
+                finally {
+
+                    analyzeBtn.disabled =
+                        false;
+
+                    analyzeBtn.innerHTML =
+                        originalButton;
+                }
+            }
+        );
+    }
+
+});
+
+</script>
+{% endblock %}

@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 attachments/
 .DS_Store
+resolve_iq.db
+.seeded_once
+_seeded_once
+instance/

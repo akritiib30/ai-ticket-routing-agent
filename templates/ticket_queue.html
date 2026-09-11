@@ -1,0 +1,2240 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket Queue — Resolve IQ Operations{% endblock %}
+
+{% block page_header %}
+<div class="page-title">Support Operations</div>
+<div class="page-heading">Ticket Queue &amp; Incident Management</div>
+{% endblock %}
+
+{% block content %}
+<div class="queue-page-wrapper">
+
+    <!-- QUEUE TOP CARD -->
+    <div class="card">
+        <div class="card-header queue-header-block">
+            <div>
+                <div class="card-title">
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                    Live Ticket Queue
+                </div>
+                <p class="section-subtitle">
+                    Manage, filter, triage, and take action on enterprise support incidents.
+                </p>
+            </div>
+
+            <div class="queue-actions">
+                <a href="/submit-ticket" class="btn btn-primary">
+                    <i class="fa-solid fa-plus"></i>
+                    Submit New Ticket
+                </a>
+
+                <a href="/api/export/csv"
+                   class="btn btn-export"
+                   title="Export tickets as CSV">
+                    <i class="fa-solid fa-file-csv"></i>
+                    Download CSV
+                </a>
+
+                <a href="/api/export/pdf"
+                   class="btn btn-export"
+                   title="Export tickets as PDF Report">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    Download PDF
+                </a>
+
+                <button type="button"
+                        class="btn btn-danger-outline"
+                        id="clearAllTicketsBtn"
+                        title="Permanently delete all stored tickets">
+                    <i class="fa-solid fa-trash-can"></i>
+                    Clear All Tickets
+                </button>
+            </div>
+        </div>
+
+
+        <!-- SEARCH & MULTI-FILTER TOOLBAR -->
+        <div class="filter-toolbar">
+
+            <div class="search-box">
+                <span class="search-icon">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+
+                <input type="text"
+                       id="searchInput"
+                       placeholder="Search ticket ID, requester, subject, category, department...">
+            </div>
+
+
+            <div class="filter-dropdowns">
+
+                <!-- CATEGORY -->
+                <div class="filter-item">
+                    <label for="filterCategory">Category:</label>
+
+                    <select id="filterCategory">
+                        <option value="all">All Categories</option>
+
+                        <option value="Network &amp; Connectivity">
+                            Network &amp; Connectivity
+                        </option>
+
+                        <option value="Account &amp; Access">
+                            Account &amp; Access
+                        </option>
+
+                        <option value="Email &amp; Collaboration">
+                            Email &amp; Collaboration
+                        </option>
+
+                        <option value="Software &amp; Applications">
+                            Software &amp; Applications
+                        </option>
+
+                        <option value="Infrastructure &amp; Servers">
+                            Infrastructure &amp; Servers
+                        </option>
+
+                        <option value="Database &amp; Storage">
+                            Database &amp; Storage
+                        </option>
+
+                        <option value="Hardware &amp; Peripherals">
+                            Hardware &amp; Peripherals
+                        </option>
+
+                        <option value="Storage &amp; Files">
+                            Storage &amp; Files
+                        </option>
+
+                        <option value="Security Operations">
+                            Security Operations
+                        </option>
+                    </select>
+                </div>
+
+
+                <!-- PRIORITY -->
+                <div class="filter-item">
+                    <label for="filterPriority">Priority:</label>
+
+                    <select id="filterPriority">
+                        <option value="all">All Priorities</option>
+                        <option value="Critical">Critical</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+
+
+                <!-- STATUS -->
+                <div class="filter-item">
+                    <label for="filterStatus">Status:</label>
+
+                    <select id="filterStatus">
+                        <option value="all">All Statuses</option>
+                        <option value="Open">Open</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
+
+
+                <!-- HANDLING -->
+                <div class="filter-item">
+                    <label for="filterHandling">Handling:</label>
+
+                    <select id="filterHandling">
+                        <option value="all">All Decisions</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Escalated">Escalated</option>
+                    </select>
+                </div>
+
+
+                <!-- OWNERSHIP -->
+                <div class="filter-item">
+                    <label for="filterOwnership">Ownership:</label>
+
+                    <select id="filterOwnership">
+                        <option value="all">All Ownership</option>
+                        <option value="AI Resolution Available">
+                            AI Resolution Available
+                        </option>
+                        <option value="Human Fix Required">
+                            Human Fix Required
+                        </option>
+                    </select>
+                </div>
+
+
+                <!-- SORT -->
+                <div class="filter-item">
+                    <label for="filterSort">Sort By:</label>
+
+                    <select id="filterSort">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="priority">Priority (High-to-Low)</option>
+                        <option value="confidence">Confidence (High-to-Low)</option>
+                    </select>
+                </div>
+
+
+                <!-- RESET -->
+                <button class="btn btn-secondary btn-sm"
+                        id="resetFiltersBtn"
+                        title="Reset all filters">
+                    <i class="fa-solid fa-filter-circle-xmark"></i>
+                    Reset
+                </button>
+
+            </div>
+        </div>
+
+
+        <!-- BULK ACTIONS -->
+        <div class="bulk-actions-bar"
+             id="bulkActionBar"
+             style="display: none;">
+
+            <div class="bulk-info">
+                <span class="bulk-badge" id="bulkCountBadge">0</span>
+                <span id="bulkCountText">tickets selected</span>
+            </div>
+
+            <div class="bulk-buttons">
+
+                <button type="button"
+                        class="btn btn-danger btn-sm"
+                        id="bulkDeleteBtn">
+                    <i class="fa-solid fa-trash-can"></i>
+                    Delete Selected
+                </button>
+
+                <button type="button"
+                        class="btn btn-success btn-sm"
+                        id="bulkResolveBtn">
+                    <i class="fa-solid fa-circle-check"></i>
+                    Mark Resolved
+                </button>
+
+                <button type="button"
+                        class="btn btn-info btn-sm"
+                        id="bulkInProgressBtn">
+                    <i class="fa-solid fa-spinner"></i>
+                    Mark In Progress
+                </button>
+
+                <button type="button"
+                        class="btn btn-secondary btn-sm"
+                        id="bulkAcceptBtn">
+                    <i class="fa-solid fa-check"></i>
+                    Mark Accepted
+                </button>
+
+                <button type="button"
+                        class="btn btn-warning btn-sm"
+                        id="bulkEscalateBtn">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Mark Escalated
+                </button>
+
+                <button type="button"
+                        class="btn btn-secondary btn-sm"
+                        id="bulkAiFixBtn">
+                    <i class="fa-solid fa-robot"></i>
+                    AI Resolution Available
+                </button>
+
+                <button type="button"
+                        class="btn btn-secondary btn-sm"
+                        id="bulkHumanFixBtn">
+                    <i class="fa-solid fa-user-gear"></i>
+                    Human Fix Required
+                </button>
+
+                <button type="button"
+                        class="btn btn-secondary btn-sm"
+                        id="bulkDeselectBtn">
+                    Deselect All
+                </button>
+
+            </div>
+        </div>
+
+
+        <!-- TICKETS TABLE -->
+        <div class="table-wrapper">
+
+            <table class="tickets-table">
+
+                <thead>
+                    <tr>
+                        <th style="width: 38px; text-align: center;">
+                            <input type="checkbox"
+                                   id="selectAllCheckbox"
+                                   title="Select / Deselect all tickets">
+                        </th>
+
+                        <th>Ticket ID</th>
+                        <th>Subject &amp; Requester</th>
+                        <th>Category</th>
+                        <th>Priority</th>
+                        <th>Department</th>
+                        <th>Confidence</th>
+                        <th>Status</th>
+                        <th>Handling</th>
+                        <th>Ownership</th>
+                        <th>Created</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+
+
+                <tbody id="ticketTableBody">
+
+                    {% if tickets %}
+
+                        {% for t in tickets %}
+
+                        <tr data-ticket-id="{{ t.ticket_id }}"
+                            class="ticket-row">
+
+                            <!-- CHECKBOX -->
+                            <td style="text-align: center;"
+                                onclick="event.stopPropagation();">
+
+                                <input type="checkbox"
+                                       class="ticket-select-cb"
+                                       value="{{ t.ticket_id }}">
+                            </td>
+
+
+                            <!-- TICKET ID -->
+                            <td>
+                                <strong style="font-family: monospace; color: var(--cyan);">
+                                    {{ t.ticket_id }}
+                                </strong>
+                            </td>
+
+
+                            <!-- SUBJECT -->
+                            <td>
+
+                                <a href="/ticket/{{ t.ticket_id }}"
+                                   style="text-decoration: none; color: inherit;">
+
+                                    <strong style="color: var(--text);">
+                                        {{ t.subject[:38] }}
+                                        {% if t.subject|length > 38 %}…{% endif %}
+                                    </strong>
+
+                                    <div style="font-size: 11.5px;
+                                                color: var(--muted);
+                                                margin-top: 2px;">
+                                        User: {{ t.username }}
+                                    </div>
+
+                                </a>
+
+                            </td>
+
+
+                            <!-- CATEGORY -->
+                            <td>
+                                <span class="badge badge-purple">
+                                    {{ t.category }}
+                                </span>
+                            </td>
+
+
+                            <!-- PRIORITY -->
+                            <td>
+
+                                <span class="badge
+                                    {% if t.priority == 'Critical' %}
+                                        badge-danger
+                                    {% elif t.priority == 'High' %}
+                                        badge-warning
+                                    {% elif t.priority == 'Low' %}
+                                        badge-success
+                                    {% else %}
+                                        badge-info
+                                    {% endif %}">
+
+                                    {{ t.priority }}
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- DEPARTMENT -->
+                            <td style="font-size: 12px;
+                                       color: var(--muted-light);">
+                                {{ t.routing }}
+                            </td>
+
+
+                            <!-- CONFIDENCE -->
+                            <td>
+                                <strong>
+                                    {{ (t.confidence * 100)|round|int }}%
+                                </strong>
+                            </td>
+
+
+                            <!-- STATUS -->
+                            <td>
+
+                                <span class="badge
+                                    {% if t.status == 'Resolved' or t.status == 'Closed' %}
+                                        badge-success
+                                    {% elif t.status == 'In Progress' %}
+                                        badge-info
+                                    {% elif t.status == 'Escalated' or t.escalated %}
+                                        badge-danger
+                                    {% else %}
+                                        badge-warning
+                                    {% endif %}">
+
+                                    {{ t.status }}
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- HANDLING -->
+                            <td>
+
+                                <span class="badge
+                                    {% if t.handling_decision == 'Escalated' or t.escalated %}
+                                        badge-danger
+                                    {% else %}
+                                        badge-success
+                                    {% endif %}">
+
+                                    {{
+                                        t.handling_decision
+                                        if t.handling_decision
+                                        else (
+                                            'Escalated'
+                                            if t.escalated
+                                            else 'Accepted'
+                                        )
+                                    }}
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- OWNERSHIP -->
+                            <td>
+
+                                <span class="badge
+                                    {% if t.resolution_ownership == 'Human Fix Required' or t.escalated %}
+                                        badge-pink
+                                    {% else %}
+                                        badge-cyan
+                                    {% endif %}">
+
+                                    {{
+                                        t.resolution_ownership
+                                        if t.resolution_ownership
+                                        else (
+                                            'Human Fix Required'
+                                            if t.escalated
+                                            else 'AI Resolution Available'
+                                        )
+                                    }}
+
+                                </span>
+
+                            </td>
+
+
+                            <!-- CREATED -->
+                            <td style="font-size: 11px;
+                                       color: var(--muted);">
+                                {{ t.timestamp[:16] }}
+                            </td>
+
+
+                            <!-- ACTIONS -->
+                            <td style="text-align: right;"
+                                onclick="event.stopPropagation();">
+
+                                <div class="row-actions">
+
+                                    <a href="/ticket/{{ t.ticket_id }}"
+                                       class="btn btn-secondary btn-sm"
+                                       title="View Ticket Dossier">
+                                        View
+                                    </a>
+
+
+                                    <div class="dropdown-container">
+
+                                        <button type="button"
+                                                class="btn-icon-more"
+                                                title="More Actions">
+
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+
+                                        </button>
+
+
+                                        <div class="row-dropdown-menu">
+
+                                            <a href="/ticket/{{ t.ticket_id }}"
+                                               class="row-menu-item">
+
+                                                <i class="fa-solid fa-eye"></i>
+                                                View
+
+                                            </a>
+
+
+                                            <button type="button"
+                                                    class="row-menu-item row-action-btn"
+                                                    data-action="accept"
+                                                    data-ticket-id="{{ t.ticket_id }}">
+
+                                                <i class="fa-solid fa-check text-success"></i>
+                                                Accept
+
+                                            </button>
+
+
+                                            <button type="button"
+                                                    class="row-menu-item row-action-btn"
+                                                    data-action="escalate"
+                                                    data-ticket-id="{{ t.ticket_id }}">
+
+                                                <i class="fa-solid fa-triangle-exclamation text-warning"></i>
+                                                Escalate
+
+                                            </button>
+
+
+                                            <button type="button"
+                                                    class="row-menu-item row-action-btn"
+                                                    data-action="resolve"
+                                                    data-ticket-id="{{ t.ticket_id }}">
+
+                                                <i class="fa-solid fa-circle-check text-success"></i>
+                                                Mark Resolved
+
+                                            </button>
+
+
+                                            <div class="dropdown-divider"></div>
+
+
+                                            <button type="button"
+                                                    class="row-menu-item text-danger row-action-btn"
+                                                    data-action="delete"
+                                                    data-ticket-id="{{ t.ticket_id }}">
+
+                                                <i class="fa-solid fa-trash-can"></i>
+                                                Delete
+
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+
+                    {% else %}
+
+                        <tr>
+
+                            <td colspan="12">
+
+                                <div class="empty-state">
+
+                                    <div class="empty-icon">
+                                        <i class="fa-solid fa-inbox"></i>
+                                    </div>
+
+                                    <h3>No tickets in database</h3>
+
+                                    <p>
+                                        Submit your first support incident and
+                                        Resolve IQ will analyze and route it.
+                                    </p>
+
+                                    <a href="/submit-ticket"
+                                       class="btn btn-primary"
+                                       style="margin-top: 10px;">
+                                        Submit Ticket
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    {% endif %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- FOOTER -->
+        <div class="table-footer">
+
+            <span id="queueCountDisplay">
+                Showing {{ tickets|length }}
+                ticket{% if tickets|length != 1 %}s{% endif %}
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const searchInput = document.getElementById("searchInput");
+    const filterCategory = document.getElementById("filterCategory");
+    const filterPriority = document.getElementById("filterPriority");
+    const filterStatus = document.getElementById("filterStatus");
+    const filterHandling = document.getElementById("filterHandling");
+    const filterOwnership = document.getElementById("filterOwnership");
+    const filterSort = document.getElementById("filterSort");
+
+    const resetFiltersBtn =
+        document.getElementById("resetFiltersBtn");
+
+    const tableBody =
+        document.getElementById("ticketTableBody");
+
+    const queueCountDisplay =
+        document.getElementById("queueCountDisplay");
+
+    const selectAllCheckbox =
+        document.getElementById("selectAllCheckbox");
+
+    const bulkActionBar =
+        document.getElementById("bulkActionBar");
+
+    const bulkCountBadge =
+        document.getElementById("bulkCountBadge");
+
+    const bulkCountText =
+        document.getElementById("bulkCountText");
+
+    const clearAllTicketsBtn =
+        document.getElementById("clearAllTicketsBtn");
+
+
+    /* =========================================================
+       FETCH + FILTER TICKETS
+       ========================================================= */
+
+    async function applyFilters() {
+
+        const search =
+            searchInput
+                ? searchInput.value.trim()
+                : "";
+
+        const category =
+            filterCategory
+                ? filterCategory.value
+                : "all";
+
+        const priority =
+            filterPriority
+                ? filterPriority.value
+                : "all";
+
+        const status =
+            filterStatus
+                ? filterStatus.value
+                : "all";
+
+        const handling =
+            filterHandling
+                ? filterHandling.value
+                : "all";
+
+        const ownership =
+            filterOwnership
+                ? filterOwnership.value
+                : "all";
+
+        const sortBy =
+            filterSort
+                ? filterSort.value
+                : "newest";
+
+
+        const params = new URLSearchParams();
+
+        if (search) {
+            params.append("search", search);
+        }
+
+        if (category && category !== "all") {
+            params.append("category", category);
+        }
+
+        if (priority && priority !== "all") {
+            params.append("priority", priority);
+        }
+
+        if (status && status !== "all") {
+            params.append("status", status);
+        }
+
+        if (handling && handling !== "all") {
+            params.append("handling", handling);
+        }
+
+        if (ownership && ownership !== "all") {
+            params.append("ownership", ownership);
+        }
+
+        if (sortBy) {
+            params.append("sort_by", sortBy);
+        }
+
+
+        try {
+
+            const res =
+                await fetch(`/api/tickets?${params.toString()}`);
+
+            const data =
+                await res.json();
+
+            if (!res.ok || !data.success) {
+                throw new Error(
+                    data.error || "Query failed"
+                );
+            }
+
+
+            const tickets =
+                data.tickets || [];
+
+
+            if (queueCountDisplay) {
+
+                queueCountDisplay.textContent =
+                    `Showing ${tickets.length} ticket${
+                        tickets.length === 1
+                            ? ""
+                            : "s"
+                    }`;
+
+            }
+
+
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = false;
+            }
+
+            updateBulkBar();
+
+
+            if (tickets.length === 0) {
+
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="12">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="fa-solid fa-inbox"></i>
+                                </div>
+
+                                <h3>No matching tickets found</h3>
+
+                                <p>
+                                    Try adjusting your search keywords
+                                    or filter criteria.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+
+            tableBody.innerHTML =
+                tickets.map(t => {
+
+                    const conf =
+                        Math.round(
+                            (t.confidence || 0) * 100
+                        );
+
+
+                    /* PRIORITY BADGE */
+                    let prioBadge = "badge-info";
+
+                    const p =
+                        (t.priority || "").toLowerCase();
+
+                    if (p === "critical") {
+                        prioBadge = "badge-danger";
+                    }
+                    else if (p === "high") {
+                        prioBadge = "badge-warning";
+                    }
+                    else if (p === "low") {
+                        prioBadge = "badge-success";
+                    }
+
+
+                    /* STATUS BADGE */
+                    let statusBadge = "badge-warning";
+
+                    if (
+                        t.status === "Resolved" ||
+                        t.status === "Closed"
+                    ) {
+                        statusBadge = "badge-success";
+                    }
+                    else if (
+                        t.status === "In Progress"
+                    ) {
+                        statusBadge = "badge-info";
+                    }
+                    else if (
+                        t.status === "Escalated" ||
+                        t.escalated
+                    ) {
+                        statusBadge = "badge-danger";
+                    }
+
+
+                    /* HANDLING */
+                    const handlingVal =
+                        t.handling_decision ||
+                        (
+                            t.escalated
+                                ? "Escalated"
+                                : "Accepted"
+                        );
+
+                    const handlingBadge =
+                        handlingVal === "Escalated"
+                            ? "badge-danger"
+                            : "badge-success";
+
+
+                    /* OWNERSHIP */
+                    const ownershipVal =
+                        t.resolution_ownership ||
+                        (
+                            t.escalated
+                                ? "Human Fix Required"
+                                : "AI Resolution Available"
+                        );
+
+                    const ownershipBadge =
+                        ownershipVal === "Human Fix Required"
+                            ? "badge-pink"
+                            : "badge-cyan";
+
+
+                    return `
+
+                        <tr
+                            data-ticket-id="${escapeHtml(t.ticket_id)}"
+                            class="ticket-row"
+                        >
+
+                            <td
+                                style="text-align: center;"
+                                onclick="event.stopPropagation();"
+                            >
+                                <input
+                                    type="checkbox"
+                                    class="ticket-select-cb"
+                                    value="${escapeHtml(t.ticket_id)}"
+                                >
+                            </td>
+
+
+                            <td>
+                                <strong
+                                    style="font-family: monospace;
+                                           color: var(--cyan);"
+                                >
+                                    ${escapeHtml(t.ticket_id)}
+                                </strong>
+                            </td>
+
+
+                            <td>
+
+                                <a
+                                    href="/ticket/${encodeURIComponent(t.ticket_id)}"
+                                    style="text-decoration: none;
+                                           color: inherit;"
+                                >
+
+                                    <strong style="color: var(--text);">
+                                        ${escapeHtml(
+                                            (t.subject || "")
+                                                .substring(0, 38)
+                                        )}${(
+                                            t.subject &&
+                                            t.subject.length > 38
+                                        ) ? "…" : ""}
+                                    </strong>
+
+                                    <div
+                                        style="font-size: 11.5px;
+                                               color: var(--muted);
+                                               margin-top: 2px;"
+                                    >
+                                        User:
+                                        ${escapeHtml(t.username)}
+                                    </div>
+
+                                </a>
+
+                            </td>
+
+
+                            <td>
+                                <span class="badge badge-purple">
+                                    ${escapeHtml(t.category)}
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <span class="badge ${prioBadge}">
+                                    ${escapeHtml(t.priority)}
+                                </span>
+                            </td>
+
+
+                            <td
+                                style="font-size: 12px;
+                                       color: var(--muted-light);"
+                            >
+                                ${escapeHtml(t.routing)}
+                            </td>
+
+
+                            <td>
+                                <strong>${conf}%</strong>
+                            </td>
+
+
+                            <td>
+                                <span class="badge ${statusBadge}">
+                                    ${escapeHtml(t.status)}
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <span class="badge ${handlingBadge}">
+                                    ${escapeHtml(handlingVal)}
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <span class="badge ${ownershipBadge}">
+                                    ${escapeHtml(ownershipVal)}
+                                </span>
+                            </td>
+
+
+                            <td
+                                style="font-size: 11px;
+                                       color: var(--muted);"
+                            >
+                                ${escapeHtml(
+                                    (t.timestamp || "")
+                                        .substring(0, 16)
+                                )}
+                            </td>
+
+
+                            <td
+                                style="text-align: right;"
+                                onclick="event.stopPropagation();"
+                            >
+
+                                <div class="row-actions">
+
+                                    <a
+                                        href="/ticket/${encodeURIComponent(t.ticket_id)}"
+                                        class="btn btn-secondary btn-sm"
+                                    >
+                                        View
+                                    </a>
+
+
+                                    <div class="dropdown-container">
+
+                                        <button
+                                            type="button"
+                                            class="btn-icon-more"
+                                            title="More Actions"
+                                        >
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        </button>
+
+
+                                        <div class="row-dropdown-menu">
+
+                                            <a
+                                                href="/ticket/${encodeURIComponent(t.ticket_id)}"
+                                                class="row-menu-item"
+                                            >
+                                                <i class="fa-solid fa-eye"></i>
+                                                View
+                                            </a>
+
+
+                                            <button
+                                                type="button"
+                                                class="row-menu-item row-action-btn"
+                                                data-action="accept"
+                                                data-ticket-id="${escapeHtml(t.ticket_id)}"
+                                            >
+                                                <i class="fa-solid fa-check text-success"></i>
+                                                Accept
+                                            </button>
+
+
+                                            <button
+                                                type="button"
+                                                class="row-menu-item row-action-btn"
+                                                data-action="escalate"
+                                                data-ticket-id="${escapeHtml(t.ticket_id)}"
+                                            >
+                                                <i class="fa-solid fa-triangle-exclamation text-warning"></i>
+                                                Escalate
+                                            </button>
+
+
+                                            <button
+                                                type="button"
+                                                class="row-menu-item row-action-btn"
+                                                data-action="resolve"
+                                                data-ticket-id="${escapeHtml(t.ticket_id)}"
+                                            >
+                                                <i class="fa-solid fa-circle-check text-success"></i>
+                                                Mark Resolved
+                                            </button>
+
+
+                                            <div class="dropdown-divider"></div>
+
+
+                                            <button
+                                                type="button"
+                                                class="row-menu-item text-danger row-action-btn"
+                                                data-action="delete"
+                                                data-ticket-id="${escapeHtml(t.ticket_id)}"
+                                            >
+                                                <i class="fa-solid fa-trash-can"></i>
+                                                Delete
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    `;
+
+                }).join("");
+
+
+            attachRowListeners();
+
+        }
+        catch (err) {
+
+            console.error(
+                "Filter error:",
+                err
+            );
+
+            if (window.showToast) {
+                window.showToast(
+                    "Failed to fetch tickets: " +
+                    err.message,
+                    "error"
+                );
+            }
+
+        }
+
+    }
+
+
+    /* =========================================================
+       SEARCH DEBOUNCE
+       ========================================================= */
+
+    let debounceTimer;
+
+    if (searchInput) {
+
+        searchInput.addEventListener(
+            "input",
+            () => {
+
+                clearTimeout(debounceTimer);
+
+                debounceTimer =
+                    setTimeout(
+                        applyFilters,
+                        250
+                    );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       FILTER CHANGE
+       ========================================================= */
+
+    [
+        filterCategory,
+        filterPriority,
+        filterStatus,
+        filterHandling,
+        filterOwnership,
+        filterSort
+    ].forEach(sel => {
+
+        if (sel) {
+            sel.addEventListener(
+                "change",
+                applyFilters
+            );
+        }
+
+    });
+
+
+    /* =========================================================
+       RESET FILTERS
+       ========================================================= */
+
+    if (resetFiltersBtn) {
+
+        resetFiltersBtn.addEventListener(
+            "click",
+            () => {
+
+                if (searchInput) {
+                    searchInput.value = "";
+                }
+
+                if (filterCategory) {
+                    filterCategory.value = "all";
+                }
+
+                if (filterPriority) {
+                    filterPriority.value = "all";
+                }
+
+                if (filterStatus) {
+                    filterStatus.value = "all";
+                }
+
+                if (filterHandling) {
+                    filterHandling.value = "all";
+                }
+
+                if (filterOwnership) {
+                    filterOwnership.value = "all";
+                }
+
+                if (filterSort) {
+                    filterSort.value = "newest";
+                }
+
+                applyFilters();
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       SELECTED TICKETS
+       ========================================================= */
+
+    function getSelectedTicketIds() {
+
+        const checked =
+            document.querySelectorAll(
+                ".ticket-select-cb:checked"
+            );
+
+        return Array.from(checked)
+            .map(cb => cb.value);
+
+    }
+
+
+    /* =========================================================
+       BULK BAR
+       ========================================================= */
+
+    function updateBulkBar() {
+
+        const selected =
+            getSelectedTicketIds();
+
+
+        if (selected.length > 0) {
+
+            bulkCountBadge.textContent =
+                selected.length;
+
+            bulkCountText.textContent =
+                selected.length === 1
+                    ? "ticket selected"
+                    : "tickets selected";
+
+            bulkActionBar.style.display =
+                "flex";
+
+        }
+        else {
+
+            bulkActionBar.style.display =
+                "none";
+
+        }
+
+    }
+
+
+    /* =========================================================
+       SELECT ALL
+       ========================================================= */
+
+    if (selectAllCheckbox) {
+
+        selectAllCheckbox.addEventListener(
+            "change",
+            () => {
+
+                const checkboxes =
+                    document.querySelectorAll(
+                        ".ticket-select-cb"
+                    );
+
+                checkboxes.forEach(cb => {
+                    cb.checked =
+                        selectAllCheckbox.checked;
+                });
+
+                updateBulkBar();
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       ROW LISTENERS
+       ========================================================= */
+
+    function attachRowListeners() {
+
+        /* CHECKBOXES */
+
+        document
+            .querySelectorAll(".ticket-select-cb")
+            .forEach(cb => {
+
+                cb.addEventListener(
+                    "change",
+                    () => {
+
+                        updateBulkBar();
+
+                        const all =
+                            document.querySelectorAll(
+                                ".ticket-select-cb"
+                            );
+
+                        const checked =
+                            document.querySelectorAll(
+                                ".ticket-select-cb:checked"
+                            );
+
+                        if (selectAllCheckbox) {
+
+                            selectAllCheckbox.checked =
+                                (
+                                    all.length > 0 &&
+                                    all.length === checked.length
+                                );
+
+                        }
+
+                    }
+                );
+
+            });
+
+
+        /* ROW ACTION BUTTONS */
+
+        document
+            .querySelectorAll(".row-action-btn")
+            .forEach(btn => {
+
+                btn.addEventListener(
+                    "click",
+                    async (e) => {
+
+                        e.stopPropagation();
+
+
+                        document
+                            .querySelectorAll(
+                                ".row-dropdown-menu.show"
+                            )
+                            .forEach(menu => {
+                                menu.classList.remove("show");
+                            });
+
+
+                        const tid =
+                            btn.getAttribute(
+                                "data-ticket-id"
+                            );
+
+                        const action =
+                            btn.getAttribute(
+                                "data-action"
+                            );
+
+
+                        if (!tid || !action) {
+                            return;
+                        }
+
+
+                        /* ACCEPT */
+
+                        if (action === "accept") {
+
+                            try {
+
+                                const res =
+                                    await fetch(
+                                        `/api/tickets/${encodeURIComponent(tid)}/decision`,
+                                        {
+                                            method: "PATCH",
+
+                                            headers: {
+                                                "Content-Type":
+                                                    "application/json"
+                                            },
+
+                                            body: JSON.stringify({
+                                                handling_decision:
+                                                    "Accepted"
+                                            })
+                                        }
+                                    );
+
+
+                                const data =
+                                    await res.json();
+
+
+                                if (
+                                    !res.ok ||
+                                    !data.success
+                                ) {
+                                    throw new Error(
+                                        data.error ||
+                                        "Update failed"
+                                    );
+                                }
+
+
+                                if (window.showToast) {
+
+                                    window.showToast(
+                                        `Ticket ${tid} marked as Accepted`,
+                                        "success"
+                                    );
+
+                                }
+
+
+                                applyFilters();
+
+                            }
+                            catch (err) {
+
+                                if (window.showToast) {
+
+                                    window.showToast(
+                                        "Error: " +
+                                        err.message,
+                                        "error"
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+
+                        /* ESCALATE */
+
+                        else if (action === "escalate") {
+
+                            try {
+
+                                const res =
+                                    await fetch(
+                                        `/api/tickets/${encodeURIComponent(tid)}/decision`,
+                                        {
+                                            method: "PATCH",
+
+                                            headers: {
+                                                "Content-Type":
+                                                    "application/json"
+                                            },
+
+                                            body: JSON.stringify({
+                                                handling_decision:
+                                                    "Escalated"
+                                            })
+                                        }
+                                    );
+
+
+                                const data =
+                                    await res.json();
+
+
+                                if (
+                                    !res.ok ||
+                                    !data.success
+                                ) {
+                                    throw new Error(
+                                        data.error ||
+                                        "Update failed"
+                                    );
+                                }
+
+
+                                if (window.showToast) {
+
+                                    window.showToast(
+                                        `Ticket ${tid} marked as Escalated`,
+                                        "warning"
+                                    );
+
+                                }
+
+
+                                applyFilters();
+
+                            }
+                            catch (err) {
+
+                                if (window.showToast) {
+
+                                    window.showToast(
+                                        "Error: " +
+                                        err.message,
+                                        "error"
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+
+                        /* RESOLVE */
+
+                        else if (action === "resolve") {
+
+                            try {
+
+                                const res =
+                                    await fetch(
+                                        `/api/tickets/${encodeURIComponent(tid)}/status`,
+                                        {
+                                            method: "PATCH",
+
+                                            headers: {
+                                                "Content-Type":
+                                                    "application/json"
+                                            },
+
+                                            body: JSON.stringify({
+                                                status:
+                                                    "Resolved"
+                                            })
+                                        }
+                                    );
+
+
+                                const data =
+                                    await res.json();
+
+
+                                if (
+                                    !res.ok ||
+                                    !data.success
+                                ) {
+                                    throw new Error(
+                                        data.error ||
+                                        "Update failed"
+                                    );
+                                }
+
+
+                                if (window.showToast) {
+
+                                    window.showToast(
+                                        `Ticket ${tid} marked as Resolved`,
+                                        "success"
+                                    );
+
+                                }
+
+
+                                applyFilters();
+
+                            }
+                            catch (err) {
+
+                                if (window.showToast) {
+
+                                    window.showToast(
+                                        "Error: " +
+                                        err.message,
+                                        "error"
+                                    );
+
+                                }
+
+                            }
+
+                        }
+
+
+                        /* DELETE */
+
+                        else if (action === "delete") {
+
+                            if (window.showConfirmModal) {
+
+                                window.showConfirmModal({
+
+                                    title:
+                                        "Delete Ticket?",
+
+                                    message:
+                                        `Permanently delete ticket ${tid}? This action cannot be undone.`,
+
+                                    confirmText:
+                                        "Delete Ticket",
+
+                                    confirmClass:
+                                        "btn-danger",
+
+                                    onConfirm:
+                                        async () => {
+
+                                            try {
+
+                                                const res =
+                                                    await fetch(
+                                                        `/api/tickets/${encodeURIComponent(tid)}`,
+                                                        {
+                                                            method:
+                                                                "DELETE"
+                                                        }
+                                                    );
+
+
+                                                const data =
+                                                    await res.json();
+
+
+                                                if (
+                                                    !res.ok ||
+                                                    !data.success
+                                                ) {
+
+                                                    throw new Error(
+                                                        data.error ||
+                                                        "Delete failed"
+                                                    );
+
+                                                }
+
+
+                                                if (window.showToast) {
+
+                                                    window.showToast(
+                                                        `Ticket ${tid} deleted successfully`,
+                                                        "success"
+                                                    );
+
+                                                }
+
+
+                                                applyFilters();
+
+                                            }
+                                            catch (err) {
+
+                                                if (window.showToast) {
+
+                                                    window.showToast(
+                                                        "Error deleting ticket: " +
+                                                        err.message,
+                                                        "error"
+                                                    );
+
+                                                }
+
+                                            }
+
+                                        }
+
+                                });
+
+                            }
+
+                        }
+
+                    }
+                );
+
+            });
+
+    }
+
+
+    /* =========================================================
+       INITIAL ROW LISTENERS
+       ========================================================= */
+
+    attachRowListeners();
+
+
+    /* =========================================================
+       DESELECT ALL
+       ========================================================= */
+
+    const deselectBtn =
+        document.getElementById(
+            "bulkDeselectBtn"
+        );
+
+
+    if (deselectBtn) {
+
+        deselectBtn.addEventListener(
+            "click",
+            () => {
+
+                document
+                    .querySelectorAll(
+                        ".ticket-select-cb"
+                    )
+                    .forEach(cb => {
+                        cb.checked = false;
+                    });
+
+
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = false;
+                }
+
+
+                updateBulkBar();
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       BULK DELETE
+       ========================================================= */
+
+    const bulkDeleteBtn =
+        document.getElementById(
+            "bulkDeleteBtn"
+        );
+
+
+    if (bulkDeleteBtn) {
+
+        bulkDeleteBtn.addEventListener(
+            "click",
+            () => {
+
+                const selected =
+                    getSelectedTicketIds();
+
+
+                if (!selected.length) {
+                    return;
+                }
+
+
+                if (window.showConfirmModal) {
+
+                    window.showConfirmModal({
+
+                        title:
+                            `Delete ${selected.length} Selected Tickets?`,
+
+                        message:
+                            `Are you sure you want to permanently delete ${selected.length} selected tickets? This will remove them from the database.`,
+
+                        confirmText:
+                            "Delete Selected",
+
+                        confirmClass:
+                            "btn-danger",
+
+                        onConfirm:
+                            async () => {
+
+                                try {
+
+                                    const res =
+                                        await fetch(
+                                            "/api/tickets/bulk-delete",
+                                            {
+                                                method:
+                                                    "POST",
+
+                                                headers: {
+                                                    "Content-Type":
+                                                        "application/json"
+                                                },
+
+                                                body:
+                                                    JSON.stringify({
+                                                        ticket_ids:
+                                                            selected
+                                                    })
+                                            }
+                                        );
+
+
+                                    const data =
+                                        await res.json();
+
+
+                                    if (
+                                        !res.ok ||
+                                        !data.success
+                                    ) {
+
+                                        throw new Error(
+                                            data.error ||
+                                            "Bulk delete failed"
+                                        );
+
+                                    }
+
+
+                                    if (window.showToast) {
+
+                                        window.showToast(
+                                            `Deleted ${data.deleted_count} tickets`,
+                                            "success"
+                                        );
+
+                                    }
+
+
+                                    applyFilters();
+
+                                }
+                                catch (err) {
+
+                                    if (window.showToast) {
+
+                                        window.showToast(
+                                            "Bulk delete error: " +
+                                            err.message,
+                                            "error"
+                                        );
+
+                                    }
+
+                                }
+
+                            }
+
+                    });
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       BULK UPDATE HELPER
+       ========================================================= */
+
+    async function executeBulkUpdate(
+        updates,
+        successMsg
+    ) {
+
+        const selected =
+            getSelectedTicketIds();
+
+
+        if (!selected.length) {
+            return;
+        }
+
+
+        try {
+
+            const res =
+                await fetch(
+                    "/api/tickets/bulk-update",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            ticket_ids:
+                                selected,
+
+                            updates:
+                                updates
+                        })
+                    }
+                );
+
+
+            const data =
+                await res.json();
+
+
+            if (
+                !res.ok ||
+                !data.success
+            ) {
+
+                throw new Error(
+                    data.error ||
+                    "Update failed"
+                );
+
+            }
+
+
+            if (window.showToast) {
+
+                window.showToast(
+                    `${successMsg} (${data.updated_count} tickets updated)`,
+                    "success"
+                );
+
+            }
+
+
+            applyFilters();
+
+        }
+        catch (err) {
+
+            if (window.showToast) {
+
+                window.showToast(
+                    "Bulk update error: " +
+                    err.message,
+                    "error"
+                );
+
+            }
+
+        }
+
+    }
+
+
+    /* =========================================================
+       BULK RESOLVE
+       ========================================================= */
+
+    const bulkResolveBtn =
+        document.getElementById(
+            "bulkResolveBtn"
+        );
+
+
+    if (bulkResolveBtn) {
+
+        bulkResolveBtn.addEventListener(
+            "click",
+            () => {
+
+                executeBulkUpdate(
+                    {
+                        status: "Resolved"
+                    },
+                    "Marked as Resolved"
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       BULK IN PROGRESS
+       ========================================================= */
+
+    const bulkInProgressBtn =
+        document.getElementById(
+            "bulkInProgressBtn"
+        );
+
+
+    if (bulkInProgressBtn) {
+
+        bulkInProgressBtn.addEventListener(
+            "click",
+            () => {
+
+                executeBulkUpdate(
+                    {
+                        status: "In Progress"
+                    },
+                    "Marked as In Progress"
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       BULK ACCEPT
+       ========================================================= */
+
+    const bulkAcceptBtn =
+        document.getElementById(
+            "bulkAcceptBtn"
+        );
+
+
+    if (bulkAcceptBtn) {
+
+        bulkAcceptBtn.addEventListener(
+            "click",
+            () => {
+
+                executeBulkUpdate(
+                    {
+                        handling_decision:
+                            "Accepted"
+                    },
+                    "Handling set to Accepted"
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       BULK ESCALATE
+       ========================================================= */
+
+    const bulkEscalateBtn =
+        document.getElementById(
+            "bulkEscalateBtn"
+        );
+
+
+    if (bulkEscalateBtn) {
+
+        bulkEscalateBtn.addEventListener(
+            "click",
+            () => {
+
+                executeBulkUpdate(
+                    {
+                        handling_decision:
+                            "Escalated"
+                    },
+                    "Handling set to Escalated"
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       BULK AI RESOLUTION
+       ========================================================= */
+
+    const bulkAiFixBtn =
+        document.getElementById(
+            "bulkAiFixBtn"
+        );
+
+
+    if (bulkAiFixBtn) {
+
+        bulkAiFixBtn.addEventListener(
+            "click",
+            () => {
+
+                executeBulkUpdate(
+                    {
+                        resolution_ownership:
+                            "AI Resolution Available"
+                    },
+                    "Ownership set to AI Resolution Available"
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       BULK HUMAN FIX
+       ========================================================= */
+
+    const bulkHumanFixBtn =
+        document.getElementById(
+            "bulkHumanFixBtn"
+        );
+
+
+    if (bulkHumanFixBtn) {
+
+        bulkHumanFixBtn.addEventListener(
+            "click",
+            () => {
+
+                executeBulkUpdate(
+                    {
+                        resolution_ownership:
+                            "Human Fix Required"
+                    },
+                    "Ownership set to Human Fix Required"
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       CLEAR ALL TICKETS
+       ========================================================= */
+
+    if (clearAllTicketsBtn) {
+
+        clearAllTicketsBtn.addEventListener(
+            "click",
+            () => {
+
+                if (window.showConfirmModal) {
+
+                    window.showConfirmModal({
+
+                        title:
+                            "Clear all tickets?",
+
+                        message:
+                            "This will permanently delete all tickets from the Resolve IQ database. This action cannot be undone.",
+
+                        confirmText:
+                            "Clear All Tickets",
+
+                        confirmClass:
+                            "btn-danger",
+
+                        onConfirm:
+                            async () => {
+
+                                try {
+
+                                    const res =
+                                        await fetch(
+                                            "/api/tickets",
+                                            {
+                                                method:
+                                                    "DELETE"
+                                            }
+                                        );
+
+
+                                    const data =
+                                        await res.json();
+
+
+                                    if (
+                                        !res.ok ||
+                                        !data.success
+                                    ) {
+
+                                        throw new Error(
+                                            data.error ||
+                                            "Failed to clear tickets"
+                                        );
+
+                                    }
+
+
+                                    localStorage.removeItem(
+                                        "resolveiq_cached_tickets"
+                                    );
+
+                                    localStorage.removeItem(
+                                        "cached_tickets"
+                                    );
+
+
+                                    if (window.showToast) {
+
+                                        window.showToast(
+                                            `Cleared ${data.deleted_count} tickets from database`,
+                                            "success"
+                                        );
+
+                                    }
+
+
+                                    applyFilters();
+
+                                }
+                                catch (err) {
+
+                                    if (window.showToast) {
+
+                                        window.showToast(
+                                            "Clear error: " +
+                                            err.message,
+                                            "error"
+                                        );
+
+                                    }
+
+                                }
+
+                            }
+
+                    });
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       SAFE HTML ESCAPING
+       ========================================================= */
+
+    function escapeHtml(str) {
+
+        if (!str) {
+            return "";
+        }
+
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+});
+
+</script>
+
+{% endblock %}

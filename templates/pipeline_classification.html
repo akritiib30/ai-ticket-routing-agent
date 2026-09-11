@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}AI Classification — Resolve IQ{% endblock %}
+
+{% block page_header %}
+<div class="page-title">AI Decision Intelligence</div>
+<div class="page-heading">AI Issue Classification</div>
+{% endblock %}
+
+{% block content %}
+<div class="pipeline-subpage-wrapper">
+
+    <!-- OVERVIEW CARD -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-tags"></i>
+                    </div>
+                    Issue Classification Intelligence
+                </div>
+
+                <p class="section-subtitle">
+                    Resolve IQ analyzes ticket language and identifies the most relevant
+                    support category using a trained machine-learning classifier.
+                </p>
+            </div>
+
+            <span class="badge badge-success">
+                <i class="fa-solid fa-check"></i>
+                100% Validation Accuracy
+            </span>
+        </div>
+
+        <div class="info-block-grid">
+
+            <div class="info-stat-card">
+                <span class="info-label">Supported IT Domains</span>
+
+                <div class="info-val">9 Support Categories</div>
+
+                <div class="info-sub">
+                    Network, Access, Email, Applications, Infrastructure,
+                    Database, Hardware, Storage &amp; Security
+                </div>
+            </div>
+
+            <div class="info-stat-card">
+                <span class="info-label">Model Classification Type</span>
+
+                <div class="info-val">TF-IDF Vectorization</div>
+
+                <div class="info-sub">
+                    Probabilistic Multi-Class Text Classifier
+                </div>
+            </div>
+
+            <div class="info-stat-card">
+                <span class="info-label">Total Classified in System</span>
+
+                <div class="info-val">
+                    {{ analytics.total_tickets }} Tickets
+                </div>
+
+                <div class="info-sub">
+                    Active database history
+                </div>
+            </div>
+
+        </div>
+
+        <div style="
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.16);
+            color: var(--text-secondary, #94a3b8);
+            font-size: 12px;
+            line-height: 1.6;
+        ">
+            <i class="fa-solid fa-circle-info"
+               style="margin-right: 6px; color: var(--cyan);"></i>
+
+            The displayed benchmark reflects validation performance on the current
+            1,000-ticket training dataset. It should not be interpreted as a
+            guarantee of real-world classification accuracy.
+        </div>
+    </div>
+
+
+    <!-- CATEGORIES BREAKDOWN & RECENT CLASSIFICATIONS -->
+    <div class="dashboard-split-grid" style="margin-top: 20px;">
+
+        <!-- CATEGORIES LIST -->
+        <div class="card">
+
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+
+                    Domain Categories &amp; Workload
+                </div>
+            </div>
+
+            <div class="categories-metric-list">
+
+                {% for cat, count in analytics.categories.items() %}
+
+                <div class="cat-metric-row">
+
+                    <div class="cat-name-box">
+                        <span class="badge badge-purple">
+                            {% if cat == "Network" %}
+                                Network &amp; Connectivity
+                            {% elif cat == "Access Management" %}
+                                Account &amp; Access
+                            {% elif cat == "Email" %}
+                                Email &amp; Collaboration
+                            {% elif cat == "Application" %}
+                                Software &amp; Applications
+                            {% elif cat == "Infrastructure" %}
+                                Infrastructure &amp; Servers
+                            {% elif cat == "Database" %}
+                                Database &amp; Storage
+                            {% elif cat == "Hardware" %}
+                                Hardware &amp; Peripherals
+                            {% elif cat == "Storage" %}
+                                Storage &amp; Files
+                            {% elif cat == "Security" %}
+                                Security Operations
+                            {% else %}
+                                {{ cat }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="cat-bar-wrap">
+
+                        <div class="progress" style="height: 6px;">
+
+                            <div
+                                class="progress-bar"
+                                style="
+                                    width:
+                                    {{
+                                        (
+                                            (count / analytics.total_tickets) * 100
+                                        )|round|int
+                                        if analytics.total_tickets > 0
+                                        else 0
+                                    }}%;
+                                ">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="cat-count-val">
+                        {{ count }} ticket{% if count != 1 %}s{% endif %}
+                    </div>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+        <!-- RECENT CLASSIFICATION OUTCOMES -->
+        <div class="card">
+
+            <div class="card-header">
+
+                <div class="card-title">
+
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+
+                    Recent Classification Results
+
+                </div>
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table class="tickets-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Predicted Category</th>
+                            <th>Probability</th>
+                            <th>Routing</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for t in recent_tickets %}
+
+                        <tr
+                            onclick="window.location.href='/ticket/{{ t.ticket_id }}';"
+                            style="cursor: pointer;"
+                        >
+
+                            <td>
+                                <strong
+                                    style="
+                                        font-family: monospace;
+                                        color: var(--cyan);
+                                    "
+                                >
+                                    {{ t.ticket_id }}
+                                </strong>
+                            </td>
+
+
+                            <td>
+
+                                <span class="badge badge-purple">
+
+                                    {% if t.classification == "Network" %}
+                                        Network &amp; Connectivity
+
+                                    {% elif t.classification == "Access Management" %}
+                                        Account &amp; Access
+
+                                    {% elif t.classification == "Email" %}
+                                        Email &amp; Collaboration
+
+                                    {% elif t.classification == "Application" %}
+                                        Software &amp; Applications
+
+                                    {% elif t.classification == "Infrastructure" %}
+                                        Infrastructure &amp; Servers
+
+                                    {% elif t.classification == "Database" %}
+                                        Database &amp; Storage
+
+                                    {% elif t.classification == "Hardware" %}
+                                        Hardware &amp; Peripherals
+
+                                    {% elif t.classification == "Storage" %}
+                                        Storage &amp; Files
+
+                                    {% elif t.classification == "Security" %}
+                                        Security Operations
+
+                                    {% else %}
+                                        {{ t.classification }}
+                                    {% endif %}
+
+                                </span>
+
+                            </td>
+
+
+                            <td>
+                                <strong>
+                                    {{
+                                        (
+                                            (t.classification_confidence or 0) * 100
+                                        )|round|int
+                                    }}%
+                                </strong>
+                            </td>
+
+
+                            <td style="font-size: 12px;">
+                                {{ t.routing }}
+                            </td>
+
+                        </tr>
+
+                        {% else %}
+
+                        <tr>
+
+                            <td
+                                colspan="4"
+                                style="
+                                    text-align: center;
+                                    padding: 28px;
+                                    color: var(--text-secondary, #94a3b8);
+                                "
+                            >
+                                <i
+                                    class="fa-solid fa-inbox"
+                                    style="
+                                        font-size: 22px;
+                                        margin-bottom: 8px;
+                                        display: block;
+                                    "
+                                ></i>
+
+                                No classification results available yet.
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

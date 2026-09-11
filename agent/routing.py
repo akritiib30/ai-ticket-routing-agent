@@ -1,4 +1,16 @@
 ROUTING_MAP = {
+    # Enterprise Taxonomies
+    "Network & Connectivity": "Network Support",
+    "Account & Access": "Identity & Access Management",
+    "Email & Collaboration": "Collaboration Support",
+    "Software & Applications": "Application Support",
+    "Infrastructure & Servers": "Infrastructure Support",
+    "Database & Storage": "Database Operations",
+    "Hardware & Peripherals": "End-User Computing",
+    "Security Operations": "Security Operations",
+    "Storage & Files": "Infrastructure Support",
+
+    # Legacy Category Support
     "Network": "Network Support",
     "Infrastructure": "Infrastructure Support",
     "Application": "Application Support",

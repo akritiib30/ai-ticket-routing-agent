@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+
+{% block title %}Escalation Intelligence — Resolve IQ{% endblock %}
+
+{% block page_header %}
+<div class="page-title">AI Decision Intelligence</div>
+<div class="page-heading">Human Escalation &amp; Safety Guardrails</div>
+{% endblock %}
+
+{% block content %}
+<div class="pipeline-subpage-wrapper">
+
+    <!-- OVERVIEW CARD -->
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    Escalation Intelligence
+                </div>
+
+                <p class="section-subtitle">
+                    Resolve IQ identifies tickets that require additional human attention based on confidence thresholds and defined safety boundaries.
+                </p>
+            </div>
+
+            <span class="badge badge-warning">
+                <i class="fa-solid fa-shield-halved"></i>
+                Safety Boundary Enforced
+            </span>
+        </div>
+
+
+        <div class="info-block-grid">
+
+            <!-- ESCALATION RATE -->
+            <div class="info-stat-card">
+                <span class="info-label">Current Escalation Rate</span>
+
+                <div class="info-val text-warning">
+                    {{ analytics.escalation_rate }}%
+                </div>
+
+                <div class="info-sub">
+                    {{ analytics.escalated_count }} total escalated cases
+                </div>
+            </div>
+
+
+            <!-- HUMAN REVIEW -->
+            <div class="info-stat-card">
+                <span class="info-label">Human Review Recommended</span>
+
+                <div class="info-val text-info">
+                    {{ analytics.human_review_count }} Tickets
+                </div>
+
+                <div class="info-sub">
+                    Medium-confidence cases requiring additional validation
+                </div>
+            </div>
+
+
+            <!-- SUCCESSFUL REMEDIATION -->
+            <div class="info-stat-card">
+                <span class="info-label">Successful Remediation Records</span>
+
+                <div class="info-val text-success">
+                    {{ analytics.auto_resolved_count }} Tickets
+                </div>
+
+                <div class="info-sub">
+                    Tickets with a recorded successful remediation action
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ESCALATION RULES & CURRENT ESCALATED CASES -->
+    <div class="dashboard-split-grid" style="margin-top: 20px;">
+
+        <!-- ESCALATION POLICIES -->
+        <div class="card">
+
+            <div class="card-header">
+                <div class="card-title">
+                    <div class="card-title-icon">
+                        <i class="fa-solid fa-gavel"></i>
+                    </div>
+                    Deterministic Escalation Triggers
+                </div>
+            </div>
+
+
+            <div class="escalation-rules-list">
+
+                <!-- SENSITIVE OPERATIONS -->
+                <div class="rule-box">
+                    <div class="rule-badge icon-red">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+
+                    <div>
+                        <strong>Credential &amp; Access-Sensitive Operations</strong>
+
+                        <p>
+                            Credential changes, account modifications, and other access-sensitive operations are not performed automatically. These cases remain subject to appropriate human handling and security controls.
+                        </p>
+                    </div>
+                </div>
+
+
+                <!-- SECURITY -->
+                <div class="rule-box">
+                    <div class="rule-badge icon-red">
+                        <i class="fa-solid fa-shield-virus"></i>
+                    </div>
+
+                    <div>
+                        <strong>Security &amp; Threat-Related Tickets</strong>
+
+                        <p>
+                            Security-sensitive incidents are kept within the human-review boundary and can be routed to Security Operations for specialist handling.
+                        </p>
+                    </div>
+                </div>
+
+
+                <!-- LOW CONFIDENCE -->
+                <div class="rule-box">
+                    <div class="rule-badge icon-yellow">
+                        <i class="fa-solid fa-chart-line-down"></i>
+                    </div>
+
+                    <div>
+                        <strong>Low Confidence Fallback (&lt; 60%)</strong>
+
+                        <p>
+                            Tickets with classifier probability below 60% are classified as low-confidence decisions and are eligible for escalation to human review.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- RECENT ESCALATED TICKETS -->
+        <div class="card">
+
+            <div class="card-header">
+
+                <div>
+                    <div class="card-title">
+                        <div class="card-title-icon">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+
+                        Escalated Cases Requiring Attention
+                    </div>
+                </div>
+
+                <a
+                    href="/ticket-queue?escalation=1"
+                    class="btn btn-secondary btn-sm"
+                >
+                    Queue View
+                </a>
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table class="tickets-table">
+
+                    <thead>
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Priority</th>
+                            <th>Category</th>
+                            <th>Confidence</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+
+                    <tbody>
+
+                        {% if escalated_tickets %}
+
+                            {% for t in escalated_tickets %}
+
+                            <tr
+                                onclick="window.location.href='/ticket/{{ t.ticket_id }}';"
+                                style="cursor: pointer;"
+                            >
+
+                                <!-- TICKET -->
+                                <td>
+
+                                    <strong
+                                        style="
+                                            font-family: monospace;
+                                            color: var(--cyan);
+                                        "
+                                    >
+                                        {{ t.ticket_id }}
+                                    </strong>
+
+                                    <div
+                                        style="
+                                            font-size: 11px;
+                                            color: var(--muted);
+                                        "
+                                    >
+                                        {{ t.subject[:32] }}{% if t.subject|length > 32 %}…{% endif %}
+                                    </div>
+
+                                </td>
+
+
+                                <!-- PRIORITY -->
+                                <td>
+                                    <span class="badge badge-danger">
+                                        {{ t.priority }}
+                                    </span>
+                                </td>
+
+
+                                <!-- CATEGORY -->
+                                <td>
+                                    <span class="badge badge-purple">
+                                        {% if t.category == "Network" %}
+                                            Network &amp; Connectivity
+                                        {% elif t.category == "Access Management" %}
+                                            Account &amp; Access
+                                        {% elif t.category == "Email" %}
+                                            Email &amp; Collaboration
+                                        {% elif t.category == "Application" %}
+                                            Software &amp; Applications
+                                        {% elif t.category == "Infrastructure" %}
+                                            Infrastructure &amp; Servers
+                                        {% elif t.category == "Database" %}
+                                            Database &amp; Storage
+                                        {% elif t.category == "Hardware" %}
+                                            Hardware &amp; Peripherals
+                                        {% elif t.category == "Storage" %}
+                                            Storage &amp; Files
+                                        {% elif t.category == "Security" %}
+                                            Security Operations
+                                        {% else %}
+                                            {{ t.category }}
+                                        {% endif %}
+                                    </span>
+                                </td>
+
+
+                                <!-- CONFIDENCE -->
+                                <td>
+                                    <strong>
+                                        {{ ((t.confidence or 0) * 100)|round|int }}%
+                                    </strong>
+                                </td>
+
+
+                                <!-- ACTION -->
+                                <td>
+
+                                    <a
+                                        href="/ticket/{{ t.ticket_id }}"
+                                        class="btn btn-secondary btn-sm"
+                                        onclick="event.stopPropagation();"
+                                    >
+                                        Review
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        {% else %}
+
+                            <tr>
+
+                                <td
+                                    colspan="5"
+                                    style="
+                                        text-align: center;
+                                        color: var(--muted);
+                                        padding: 24px;
+                                    "
+                                >
+                                    <i
+                                        class="fa-solid fa-circle-check"
+                                        style="color: #35e0a1;"
+                                    ></i>
+
+                                    No escalated tickets currently pending.
+                                </td>
+
+                            </tr>
+
+                        {% endif %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+/* =========================================================
+   RESOLVE IQ — ESCALATION TABLE WIDTH FIX
+   ========================================================= */
+
+.pipeline-subpage-wrapper .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.pipeline-subpage-wrapper .tickets-table {
+    width: 100%;
+    min-width: 0 !important;
+    max-width: 100%;
+    table-layout: fixed;
+}
+
+/* Column sizing */
+.pipeline-subpage-wrapper .tickets-table th:nth-child(1),
+.pipeline-subpage-wrapper .tickets-table td:nth-child(1) {
+    width: 34%;
+}
+
+.pipeline-subpage-wrapper .tickets-table th:nth-child(2),
+.pipeline-subpage-wrapper .tickets-table td:nth-child(2) {
+    width: 13%;
+}
+
+.pipeline-subpage-wrapper .tickets-table th:nth-child(3),
+.pipeline-subpage-wrapper .tickets-table td:nth-child(3) {
+    width: 25%;
+}
+
+.pipeline-subpage-wrapper .tickets-table th:nth-child(4),
+.pipeline-subpage-wrapper .tickets-table td:nth-child(4) {
+    width: 12%;
+}
+
+.pipeline-subpage-wrapper .tickets-table th:nth-child(5),
+.pipeline-subpage-wrapper .tickets-table td:nth-child(5) {
+    width: 16%;
+}
+
+/* Keep ticket content inside its column */
+.pipeline-subpage-wrapper .tickets-table td {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.pipeline-subpage-wrapper .tickets-table td:first-child strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pipeline-subpage-wrapper .tickets-table td:first-child div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Category badges should stay inside the table */
+.pipeline-subpage-wrapper .tickets-table td:nth-child(3) .badge {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* Review button stays compact */
+.pipeline-subpage-wrapper .tickets-table td:last-child {
+    white-space: nowrap;
+}
+
+.pipeline-subpage-wrapper .tickets-table td:last-child .btn {
+    white-space: nowrap;
+}
+
+/* =========================================================
+   MOBILE — allow table scrolling only on small screens
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .pipeline-subpage-wrapper .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .pipeline-subpage-wrapper .tickets-table {
+        min-width: 650px !important;
+        table-layout: auto;
+    }
+}
