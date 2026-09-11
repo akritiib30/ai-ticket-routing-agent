@@ -4,3 +4,4 @@ scikit-learn
 joblib
 pandas
 fpdf2
+gunicorn
